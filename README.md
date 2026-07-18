@@ -23,7 +23,8 @@ rights needed.
 2. Pick which monitor the display should appear on.
 3. Pick a **layout**: Centered (album art above the title/artist, all centered), or Album left /
    Album right (the art hugs that edge of the screen with the title and artist text stacked next
-   to it, aligned to the same edge).
+   to it, aligned to the same edge). Album left/right also fills the empty space on the opposite
+   side with an animated equalizer-bar visualization while something's playing.
 4. Click **Show Display** to put up the fullscreen now-playing screen. Press **Ctrl+Q** or click
    **Hide Display** to take it down.
 5. Once the display is up, **Blank Screen** temporarily hides the album art and text (just the
