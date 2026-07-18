@@ -9,6 +9,8 @@ using WinForms = System.Windows.Forms;
 using Color = System.Windows.Media.Color;
 using ColorConverter = System.Windows.Media.ColorConverter;
 using KeyEventArgs = System.Windows.Input.KeyEventArgs;
+using HorizontalAlignment = System.Windows.HorizontalAlignment;
+using TextAlignment = System.Windows.TextAlignment;
 
 namespace MusicDisplay;
 
@@ -27,10 +29,16 @@ public partial class DisplayWindow : Window
     private const uint SwpShowWindow = 0x0040;
     private const uint SwpNoActivate = 0x0010;
 
+    private const double EdgeLayoutWidth = 900;
+    private const double EdgeLayoutInset = 160;
+
     private static readonly Color IdleBackgroundColor = (Color)ColorConverter.ConvertFromString("#0B0B0D")!;
 
     /// <summary>Raised when the user dismisses the display themselves (Escape key).</summary>
     public event Action? DismissedByUser;
+
+    private NowPlayingInfo? _lastInfo;
+    private bool _isBlanked;
 
     public DisplayWindow()
     {
@@ -70,7 +78,54 @@ public partial class DisplayWindow : Window
 
     public void UpdateNowPlaying(NowPlayingInfo? info)
     {
-        bool hasTrack = info != null && !string.IsNullOrWhiteSpace(info.Title);
+        _lastInfo = info;
+        Render();
+    }
+
+    /// <summary>Temporarily hides the album art and text without closing the display window.</summary>
+    public void SetBlanked(bool blanked)
+    {
+        _isBlanked = blanked;
+        Render();
+    }
+
+    public void SetLayout(DisplayLayout layout)
+    {
+        switch (layout)
+        {
+            case DisplayLayout.Left:
+                ContentPanel.HorizontalAlignment = HorizontalAlignment.Left;
+                ContentPanel.Width = EdgeLayoutWidth;
+                ContentPanel.Margin = new Thickness(EdgeLayoutInset, 0, 0, 0);
+                ArtBorder.HorizontalAlignment = HorizontalAlignment.Left;
+                TitleText.TextAlignment = TextAlignment.Left;
+                ArtistText.TextAlignment = TextAlignment.Left;
+                break;
+
+            case DisplayLayout.Right:
+                ContentPanel.HorizontalAlignment = HorizontalAlignment.Right;
+                ContentPanel.Width = EdgeLayoutWidth;
+                ContentPanel.Margin = new Thickness(0, 0, EdgeLayoutInset, 0);
+                ArtBorder.HorizontalAlignment = HorizontalAlignment.Right;
+                TitleText.TextAlignment = TextAlignment.Right;
+                ArtistText.TextAlignment = TextAlignment.Right;
+                break;
+
+            default:
+                ContentPanel.HorizontalAlignment = HorizontalAlignment.Center;
+                ContentPanel.Width = double.NaN;
+                ContentPanel.Margin = new Thickness(0);
+                ArtBorder.HorizontalAlignment = HorizontalAlignment.Center;
+                TitleText.TextAlignment = TextAlignment.Center;
+                ArtistText.TextAlignment = TextAlignment.Center;
+                break;
+        }
+    }
+
+    private void Render()
+    {
+        var info = _lastInfo;
+        bool hasTrack = !_isBlanked && info != null && !string.IsNullOrWhiteSpace(info.Title);
 
         if (!hasTrack)
         {

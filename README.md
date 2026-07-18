@@ -21,11 +21,17 @@ rights needed.
 
 1. Launch `MusicDisplay.exe`. The control panel opens.
 2. Pick which monitor the display should appear on.
-3. Click **Show Display** to put up the fullscreen now-playing screen. Press **Esc** or click
+3. Pick a **layout**: Centered (album art above the title/artist, all centered), or Album left /
+   Album right (the art hugs that edge of the screen with the title and artist text stacked next
+   to it, aligned to the same edge).
+4. Click **Show Display** to put up the fullscreen now-playing screen. Press **Esc** or click
    **Hide Display** to take it down.
-4. Check **Start with Windows** to have it launch automatically (minimized to the tray) at login,
+5. Once the display is up, **Blank Screen** temporarily hides the album art and text (just the
+   background color stays) without closing the display window — click **Unblank** to bring them
+   back.
+6. Check **Start with Windows** to have it launch automatically (minimized to the tray) at login,
    restoring whatever show/hide state it was last in.
-5. Closing the control panel window minimizes it to the tray rather than quitting — right-click
+7. Closing the control panel window minimizes it to the tray rather than quitting — right-click
    the tray icon to fully exit.
 
 ## Building from source
@@ -73,6 +79,7 @@ src/MusicDisplay/
     ColorExtractor.cs         picks a background accent color from the album art
     AutostartService.cs       HKCU Run key registration
     AppSettings.cs            settings persisted to %AppData%\MusicDisplay\settings.json
+    DisplayLayout.cs          Centered / Left / Right layout enum
   Resources/Fonts/            embedded Poppins font files (OFL licensed, see OFL.txt)
 installer/installer.iss       Inno Setup installer script
 ```
