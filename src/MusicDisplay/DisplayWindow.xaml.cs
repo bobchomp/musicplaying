@@ -6,6 +6,8 @@ using System.Windows.Media;
 using System.Windows.Media.Animation;
 using MusicDisplay.Services;
 using WinForms = System.Windows.Forms;
+using Color = System.Windows.Media.Color;
+using KeyEventArgs = System.Windows.Input.KeyEventArgs;
 
 namespace MusicDisplay;
 

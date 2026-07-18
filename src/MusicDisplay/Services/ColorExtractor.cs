@@ -1,5 +1,6 @@
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using Color = System.Windows.Media.Color;
 
 namespace MusicDisplay.Services;
 
