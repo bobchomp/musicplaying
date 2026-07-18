@@ -11,6 +11,8 @@ using ColorConverter = System.Windows.Media.ColorConverter;
 using KeyEventArgs = System.Windows.Input.KeyEventArgs;
 using HorizontalAlignment = System.Windows.HorizontalAlignment;
 using TextAlignment = System.Windows.TextAlignment;
+using Keyboard = System.Windows.Input.Keyboard;
+using ModifierKeys = System.Windows.Input.ModifierKeys;
 
 namespace MusicDisplay;
 
@@ -34,7 +36,7 @@ public partial class DisplayWindow : Window
 
     private static readonly Color IdleBackgroundColor = (Color)ColorConverter.ConvertFromString("#0B0B0D")!;
 
-    /// <summary>Raised when the user dismisses the display themselves (Escape key).</summary>
+    /// <summary>Raised when the user dismisses the display themselves (Ctrl+Q).</summary>
     public event Action? DismissedByUser;
 
     private NowPlayingInfo? _lastInfo;
@@ -48,7 +50,7 @@ public partial class DisplayWindow : Window
 
     private void OnPreviewKeyDown(object sender, KeyEventArgs e)
     {
-        if (e.Key == Key.Escape)
+        if (e.Key == Key.Q && Keyboard.Modifiers == ModifierKeys.Control)
         {
             DismissedByUser?.Invoke();
         }
