@@ -14,11 +14,8 @@ no per-app setup. Requires Windows 10 version 1809 (build 17763) or later.
 
 ## Getting the app
 
-- **Installer**: grab `MusicDisplaySetup.exe` from the repo's [Releases](../../releases) page and
-  run it. No admin rights needed.
-- **Portable build**: every push builds a self-contained `MusicDisplay.exe` — download it from
-  the `MusicDisplay-win-x64` artifact on the [Build workflow](../../actions/workflows/build.yml)
-  runs. It's a single file with no installer and no separate .NET install required.
+Grab `MusicDisplaySetup.exe` from the repo's [Releases](../../releases) page and run it. No admin
+rights needed.
 
 ## Using it
 
@@ -60,12 +57,9 @@ The installer is written to `installer\output\MusicDisplaySetup.exe`.
 
 ## CI/CD
 
-- **`.github/workflows/build.yml`** — builds and publishes the app on every push/PR, uploading
-  the portable exe as a workflow artifact. This is also how a Linux/CI environment validates the
-  code compiles, since this project can only be built and run on Windows.
-- **`.github/workflows/release.yml`** — on pushing a tag like `v1.0.0` (or via the "Run workflow"
-  button with a version number), publishes the app, compiles the Inno Setup installer, and
-  attaches `MusicDisplaySetup.exe` to a new GitHub Release.
+**`.github/workflows/release.yml`** — on pushing a tag like `v1.0.0`, or via the Actions tab's
+"Run workflow" button with a version number, this publishes the app, compiles the Inno Setup
+installer, and attaches `MusicDisplaySetup.exe` to a new GitHub Release.
 
 ## Project layout
 
