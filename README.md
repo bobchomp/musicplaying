@@ -24,7 +24,7 @@ rights needed.
 3. Pick a **layout**: Centered (album art above the title/artist, all centered), or Album left /
    Album right (the art hugs that edge of the screen with the title and artist text stacked next
    to it, aligned to the same edge).
-4. Click **Show Display** to put up the fullscreen now-playing screen. Press **Esc** or click
+4. Click **Show Display** to put up the fullscreen now-playing screen. Press **Ctrl+Q** or click
    **Hide Display** to take it down.
 5. Once the display is up, **Blank Screen** temporarily hides the album art and text (just the
    background color stays) without closing the display window — click **Unblank** to bring them
