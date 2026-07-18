@@ -44,6 +44,17 @@
             <Setter Property="Opacity" Value="0.6" />
             <Setter Property="Margin" Value="0,0,0,6" />
         </Style>
+
+        <Style x:Key="SecondaryButtonStyle" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+            <Setter Property="FontFamily" Value="pack://application:,,,/Resources/Fonts/#Poppins Medium" />
+            <Setter Property="FontSize" Value="14" />
+            <Setter Property="Height" Value="38" />
+        </Style>
+
+        <Style x:Key="LayoutRadioStyle" TargetType="RadioButton">
+            <Setter Property="Margin" Value="0,0,18,0" />
+            <Setter Property="GroupName" Value="Layout" />
+        </Style>
     </Window.Resources>
 
     <StackPanel Margin="28">
@@ -64,11 +75,37 @@
                   SelectionChanged="MonitorComboBox_SelectionChanged"
                   Margin="0,0,0,20" />
 
+        <TextBlock Text="LAYOUT" Style="{StaticResource SectionLabelStyle}" />
+        <StackPanel Orientation="Horizontal" Margin="0,0,0,20">
+            <RadioButton x:Name="LayoutCenteredRadio"
+                         Content="Centered"
+                         Tag="Centered"
+                         Style="{StaticResource LayoutRadioStyle}"
+                         Checked="LayoutRadio_Checked" />
+            <RadioButton x:Name="LayoutLeftRadio"
+                         Content="Album left"
+                         Tag="Left"
+                         Style="{StaticResource LayoutRadioStyle}"
+                         Checked="LayoutRadio_Checked" />
+            <RadioButton x:Name="LayoutRightRadio"
+                         Content="Album right"
+                         Tag="Right"
+                         Style="{StaticResource LayoutRadioStyle}"
+                         Checked="LayoutRadio_Checked" />
+        </StackPanel>
+
         <Button x:Name="ToggleDisplayButton"
                 Content="Show Display"
                 Height="42"
                 Style="{StaticResource AccentButtonStyle}"
                 Click="ToggleDisplayButton_Click"
+                Margin="0,0,0,10" />
+
+        <Button x:Name="BlankButton"
+                Content="Blank Screen"
+                Style="{StaticResource SecondaryButtonStyle}"
+                Click="BlankButton_Click"
+                IsEnabled="False"
                 Margin="0,0,0,18" />
 
         <CheckBox x:Name="StartWithWindowsCheckBox"

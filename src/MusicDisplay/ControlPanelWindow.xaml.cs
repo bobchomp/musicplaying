@@ -17,6 +17,7 @@ public partial class ControlPanelWindow : Window
     private WinForms.ToolStripMenuItem? _trayToggleMenuItem;
 
     private bool _isDisplayVisible;
+    private bool _isBlanked;
     private bool _suppressMonitorSelectionHandling;
     private bool _isExiting;
 
@@ -27,6 +28,7 @@ public partial class ControlPanelWindow : Window
         _settings = SettingsService.Load();
 
         PopulateMonitors();
+        InitializeLayoutSelection();
         StartWithWindowsCheckBox.IsChecked = AutostartService.IsEnabled();
 
         SetupTrayIcon();
@@ -69,6 +71,34 @@ public partial class ControlPanelWindow : Window
     }
 
     private WinForms.Screen? SelectedScreen => (MonitorComboBox.SelectedItem as MonitorOption)?.Screen;
+
+    private void InitializeLayoutSelection()
+    {
+        var radio = _settings.Layout switch
+        {
+            DisplayLayout.Left => LayoutLeftRadio,
+            DisplayLayout.Right => LayoutRightRadio,
+            _ => LayoutCenteredRadio,
+        };
+        radio.IsChecked = true;
+    }
+
+    private void LayoutRadio_Checked(object sender, RoutedEventArgs e)
+    {
+        if (sender is not System.Windows.Controls.RadioButton { Tag: string tag })
+        {
+            return;
+        }
+
+        if (!Enum.TryParse<DisplayLayout>(tag, out var layout))
+        {
+            return;
+        }
+
+        _settings.Layout = layout;
+        SettingsService.Save(_settings);
+        _displayWindow.SetLayout(layout);
+    }
 
     private void SetupTrayIcon()
     {
@@ -179,8 +209,20 @@ public partial class ControlPanelWindow : Window
             _trayToggleMenuItem.Text = visible ? "Hide Display" : "Show Display";
         }
 
+        _isBlanked = false;
+        _displayWindow.SetBlanked(false);
+        BlankButton.Content = "Blank Screen";
+        BlankButton.IsEnabled = visible;
+
         _settings.DisplayVisible = visible;
         SettingsService.Save(_settings);
+    }
+
+    private void BlankButton_Click(object sender, RoutedEventArgs e)
+    {
+        _isBlanked = !_isBlanked;
+        _displayWindow.SetBlanked(_isBlanked);
+        BlankButton.Content = _isBlanked ? "Unblank" : "Blank Screen";
     }
 
     private void OnDisplayDismissedByUser() => Dispatcher.Invoke(() => SetDisplayVisible(false));
