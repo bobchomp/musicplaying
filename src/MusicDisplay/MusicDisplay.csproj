@@ -1,0 +1,34 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net9.0-windows10.0.19041.0</TargetFramework>
+    <SupportedOSPlatformVersion>10.0.17763.0</SupportedOSPlatformVersion>
+    <RootNamespace>MusicDisplay</RootNamespace>
+    <AssemblyName>MusicDisplay</AssemblyName>
+    <UseWPF>true</UseWPF>
+    <UseWindowsForms>true</UseWindowsForms>
+    <ThemeMode>System</ThemeMode>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Platforms>x64</Platforms>
+    <RuntimeIdentifiers>win-x64</RuntimeIdentifiers>
+    <ApplicationIcon>Assets\icon.ico</ApplicationIcon>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <Version>1.0.0</Version>
+    <Product>Music Display</Product>
+    <!-- DPI awareness is declared in app.manifest (required for WPF); this app doesn't use
+         WinForms' own ApplicationHighDpiMode mechanism, so suppress the analyzer's suggestion
+         to use it instead. -->
+    <NoWarn>$(NoWarn);WFO0003</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Resource Include="Resources\Fonts\Poppins-Regular.ttf" />
+    <Resource Include="Resources\Fonts\Poppins-Medium.ttf" />
+    <Resource Include="Resources\Fonts\Poppins-SemiBold.ttf" />
+    <Resource Include="Resources\Fonts\Poppins-Bold.ttf" />
+    <Resource Include="Assets\icon.ico" />
+  </ItemGroup>
+
+</Project>

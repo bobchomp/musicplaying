@@ -1,0 +1,59 @@
+<Window x:Class="MusicDisplay.DisplayWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Music Display"
+        WindowStyle="None"
+        ResizeMode="NoResize"
+        ShowInTaskbar="False"
+        Topmost="True"
+        WindowStartupLocation="Manual"
+        Background="Black">
+
+    <Window.Resources>
+        <DropShadowEffect x:Key="ArtShadow" Color="Black" BlurRadius="70" ShadowDepth="0" Opacity="0.6" />
+    </Window.Resources>
+
+    <Grid x:Name="RootGrid">
+        <Grid.Background>
+            <SolidColorBrush x:Name="BackgroundBrush" Color="#0B0B0D" />
+        </Grid.Background>
+
+        <Viewbox Stretch="Uniform">
+            <Grid Width="1920" Height="1080">
+                <StackPanel x:Name="ContentPanel"
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Center"
+                            Visibility="Collapsed">
+
+                    <Border x:Name="ArtBorder"
+                            Width="560"
+                            Height="560"
+                            CornerRadius="18"
+                            ClipToBounds="True"
+                            Background="#22FFFFFF"
+                            Effect="{StaticResource ArtShadow}"
+                            HorizontalAlignment="Center">
+                        <Image x:Name="AlbumArtImage" Stretch="UniformToFill" />
+                    </Border>
+
+                    <TextBlock x:Name="TitleText"
+                               FontFamily="pack://application:,,,/Resources/Fonts/#Poppins SemiBold"
+                               FontSize="76"
+                               Foreground="White"
+                               TextAlignment="Center"
+                               TextWrapping="Wrap"
+                               MaxWidth="1500"
+                               Margin="0,52,0,10" />
+
+                    <TextBlock x:Name="ArtistText"
+                               FontFamily="pack://application:,,,/Resources/Fonts/#Poppins"
+                               FontSize="38"
+                               Foreground="#D9FFFFFF"
+                               TextAlignment="Center"
+                               TextWrapping="Wrap"
+                               MaxWidth="1500" />
+                </StackPanel>
+            </Grid>
+        </Viewbox>
+    </Grid>
+</Window>
