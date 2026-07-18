@@ -53,6 +53,29 @@
                                TextWrapping="Wrap"
                                MaxWidth="1500" />
                 </StackPanel>
+
+                <StackPanel x:Name="EqualizerPanel"
+                            Orientation="Horizontal"
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Center"
+                            Height="260"
+                            Visibility="Collapsed">
+                    <StackPanel.Resources>
+                        <Style TargetType="Border">
+                            <Setter Property="Width" Value="34" />
+                            <Setter Property="Margin" Value="14,0" />
+                            <Setter Property="CornerRadius" Value="8" />
+                            <Setter Property="Background" Value="#4DFFFFFF" />
+                            <Setter Property="VerticalAlignment" Value="Bottom" />
+                        </Style>
+                    </StackPanel.Resources>
+                    <Border x:Name="EqBar1" Height="90" />
+                    <Border x:Name="EqBar2" Height="170" />
+                    <Border x:Name="EqBar3" Height="230" />
+                    <Border x:Name="EqBar4" Height="130" />
+                    <Border x:Name="EqBar5" Height="200" />
+                    <Border x:Name="EqBar6" Height="110" />
+                </StackPanel>
             </Grid>
         </Viewbox>
     </Grid>

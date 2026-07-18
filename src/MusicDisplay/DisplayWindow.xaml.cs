@@ -35,17 +35,20 @@ public partial class DisplayWindow : Window
     private const double EdgeLayoutInset = 160;
 
     private static readonly Color IdleBackgroundColor = (Color)ColorConverter.ConvertFromString("#0B0B0D")!;
+    private static readonly Random EqualizerRandom = new();
 
     /// <summary>Raised when the user dismisses the display themselves (Ctrl+Q).</summary>
     public event Action? DismissedByUser;
 
     private NowPlayingInfo? _lastInfo;
     private bool _isBlanked;
+    private DisplayLayout _layout = DisplayLayout.Centered;
 
     public DisplayWindow()
     {
         InitializeComponent();
         PreviewKeyDown += OnPreviewKeyDown;
+        StartEqualizerAnimation();
     }
 
     private void OnPreviewKeyDown(object sender, KeyEventArgs e)
@@ -93,6 +96,8 @@ public partial class DisplayWindow : Window
 
     public void SetLayout(DisplayLayout layout)
     {
+        _layout = layout;
+
         switch (layout)
         {
             case DisplayLayout.Left:
@@ -102,6 +107,8 @@ public partial class DisplayWindow : Window
                 ArtBorder.HorizontalAlignment = HorizontalAlignment.Left;
                 TitleText.TextAlignment = TextAlignment.Left;
                 ArtistText.TextAlignment = TextAlignment.Left;
+                EqualizerPanel.HorizontalAlignment = HorizontalAlignment.Right;
+                EqualizerPanel.Margin = new Thickness(0, 0, EdgeLayoutInset, 0);
                 break;
 
             case DisplayLayout.Right:
@@ -111,6 +118,8 @@ public partial class DisplayWindow : Window
                 ArtBorder.HorizontalAlignment = HorizontalAlignment.Right;
                 TitleText.TextAlignment = TextAlignment.Right;
                 ArtistText.TextAlignment = TextAlignment.Right;
+                EqualizerPanel.HorizontalAlignment = HorizontalAlignment.Left;
+                EqualizerPanel.Margin = new Thickness(EdgeLayoutInset, 0, 0, 0);
                 break;
 
             default:
@@ -120,14 +129,24 @@ public partial class DisplayWindow : Window
                 ArtBorder.HorizontalAlignment = HorizontalAlignment.Center;
                 TitleText.TextAlignment = TextAlignment.Center;
                 ArtistText.TextAlignment = TextAlignment.Center;
+                EqualizerPanel.HorizontalAlignment = HorizontalAlignment.Center;
+                EqualizerPanel.Margin = new Thickness(0);
                 break;
         }
+
+        Render();
     }
 
     private void Render()
     {
         var info = _lastInfo;
         bool hasTrack = !_isBlanked && info != null && !string.IsNullOrWhiteSpace(info.Title);
+
+        // The equalizer only makes sense filling the empty space beside an edge-aligned layout;
+        // Centered has no single obvious empty side to put it in.
+        EqualizerPanel.Visibility = hasTrack && _layout != DisplayLayout.Centered
+            ? Visibility.Visible
+            : Visibility.Collapsed;
 
         if (!hasTrack)
         {
@@ -154,5 +173,28 @@ public partial class DisplayWindow : Window
             EasingFunction = new QuadraticEase { EasingMode = EasingMode.EaseInOut },
         };
         BackgroundBrush.BeginAnimation(SolidColorBrush.ColorProperty, animation);
+    }
+
+    private void StartEqualizerAnimation()
+    {
+        foreach (var bar in new FrameworkElement[] { EqBar1, EqBar2, EqBar3, EqBar4, EqBar5, EqBar6 })
+        {
+            AnimateEqualizerBar(bar);
+        }
+    }
+
+    private static void AnimateEqualizerBar(FrameworkElement bar)
+    {
+        var animation = new DoubleAnimation
+        {
+            From = 40 + EqualizerRandom.NextDouble() * 50,
+            To = 150 + EqualizerRandom.NextDouble() * 110,
+            Duration = new Duration(TimeSpan.FromMilliseconds(500 + EqualizerRandom.Next(500))),
+            BeginTime = TimeSpan.FromMilliseconds(EqualizerRandom.Next(400)),
+            AutoReverse = true,
+            RepeatBehavior = RepeatBehavior.Forever,
+            EasingFunction = new SineEase { EasingMode = EasingMode.EaseInOut },
+        };
+        bar.BeginAnimation(FrameworkElement.HeightProperty, animation);
     }
 }
