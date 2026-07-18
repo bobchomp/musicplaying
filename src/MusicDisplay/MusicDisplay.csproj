@@ -17,6 +17,10 @@
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <Version>1.0.0</Version>
     <Product>Music Display</Product>
+    <!-- DPI awareness is declared in app.manifest (required for WPF); this app doesn't use
+         WinForms' own ApplicationHighDpiMode mechanism, so suppress the analyzer's suggestion
+         to use it instead. -->
+    <NoWarn>$(NoWarn);WFO0003</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>
