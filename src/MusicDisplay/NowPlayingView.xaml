@@ -47,6 +47,18 @@
                                MaxWidth="1500" />
                 </StackPanel>
 
+                <TextBlock x:Name="IdleText"
+                           Text="No music playing"
+                           FontFamily="pack://application:,,,/Resources/Fonts/#Poppins SemiBold"
+                           FontSize="56"
+                           Foreground="#80FFFFFF"
+                           TextAlignment="Center"
+                           TextWrapping="Wrap"
+                           MaxWidth="1500"
+                           HorizontalAlignment="Center"
+                           VerticalAlignment="Center"
+                           Visibility="Collapsed" />
+
                 <StackPanel x:Name="SidePanel"
                             HorizontalAlignment="Center"
                             VerticalAlignment="Center"

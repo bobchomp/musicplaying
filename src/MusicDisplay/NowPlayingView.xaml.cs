@@ -111,6 +111,9 @@ public partial class NowPlayingView : UserControl
                 ArtBorder.HorizontalAlignment = HorizontalAlignment.Left;
                 TitleText.TextAlignment = TextAlignment.Left;
                 ArtistText.TextAlignment = TextAlignment.Left;
+                IdleText.HorizontalAlignment = HorizontalAlignment.Left;
+                IdleText.TextAlignment = TextAlignment.Left;
+                IdleText.Margin = new Thickness(EdgeLayoutInset, 0, 0, 0);
                 SidePanel.HorizontalAlignment = HorizontalAlignment.Right;
                 SidePanel.Margin = new Thickness(0, 0, EdgeLayoutInset, 0);
                 break;
@@ -122,6 +125,9 @@ public partial class NowPlayingView : UserControl
                 ArtBorder.HorizontalAlignment = HorizontalAlignment.Right;
                 TitleText.TextAlignment = TextAlignment.Right;
                 ArtistText.TextAlignment = TextAlignment.Right;
+                IdleText.HorizontalAlignment = HorizontalAlignment.Right;
+                IdleText.TextAlignment = TextAlignment.Right;
+                IdleText.Margin = new Thickness(0, 0, EdgeLayoutInset, 0);
                 SidePanel.HorizontalAlignment = HorizontalAlignment.Left;
                 SidePanel.Margin = new Thickness(EdgeLayoutInset, 0, 0, 0);
                 break;
@@ -133,6 +139,9 @@ public partial class NowPlayingView : UserControl
                 ArtBorder.HorizontalAlignment = HorizontalAlignment.Center;
                 TitleText.TextAlignment = TextAlignment.Center;
                 ArtistText.TextAlignment = TextAlignment.Center;
+                IdleText.HorizontalAlignment = HorizontalAlignment.Center;
+                IdleText.TextAlignment = TextAlignment.Center;
+                IdleText.Margin = new Thickness(0);
                 SidePanel.HorizontalAlignment = HorizontalAlignment.Center;
                 SidePanel.Margin = new Thickness(0);
                 break;
@@ -142,24 +151,34 @@ public partial class NowPlayingView : UserControl
     private void Render()
     {
         var info = _lastInfo;
-        bool hasTrack = !_isBlanked && info != null && !string.IsNullOrWhiteSpace(info.Title);
+        bool hasTrack = info != null && !string.IsNullOrWhiteSpace(info.Title);
         bool onEdgeLayout = _layout != DisplayLayout.Centered;
 
         // The side panel only makes sense filling the empty space beside an edge-aligned layout;
         // Centered has no single obvious empty side to put it in.
-        bool equalizerVisible = hasTrack && onEdgeLayout;
+        bool equalizerVisible = !_isBlanked && hasTrack && onEdgeLayout;
         bool clockVisible = _showClock && onEdgeLayout;
         EqualizerPanel.Visibility = equalizerVisible ? Visibility.Visible : Visibility.Collapsed;
         ClockPanel.Visibility = clockVisible ? Visibility.Visible : Visibility.Collapsed;
         SidePanel.Visibility = equalizerVisible || clockVisible ? Visibility.Visible : Visibility.Collapsed;
 
-        if (!hasTrack)
+        if (_isBlanked)
         {
             ContentPanel.Visibility = Visibility.Collapsed;
+            IdleText.Visibility = Visibility.Collapsed;
             AnimateBackgroundTo(IdleBackgroundColor);
             return;
         }
 
+        if (!hasTrack)
+        {
+            ContentPanel.Visibility = Visibility.Collapsed;
+            IdleText.Visibility = Visibility.Visible;
+            AnimateBackgroundTo(IdleBackgroundColor);
+            return;
+        }
+
+        IdleText.Visibility = Visibility.Collapsed;
         TitleText.Text = info!.Title;
         ArtistText.Text = info.Artist;
         AlbumArtImage.Source = info.Thumbnail;
