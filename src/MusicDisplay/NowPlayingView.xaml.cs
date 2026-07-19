@@ -35,6 +35,8 @@ public partial class NowPlayingView : UserControl
     private bool _hasAppliedLayout;
     private double _titleClipWidth = CenteredTitleWidth;
     private TextAlignment _titleAlignment = TextAlignment.Center;
+    private readonly List<AnimationClock> _equalizerClocks = new();
+    private bool _isEqualizerPlaying = true;
 
     public NowPlayingView()
     {
@@ -168,6 +170,7 @@ public partial class NowPlayingView : UserControl
         // Centered has no single obvious empty side to put it in.
         bool equalizerVisible = !_isBlanked && hasTrack && onEdgeLayout;
         bool edgeClockVisible = _showClock && onEdgeLayout;
+        SetEqualizerPlaying(info?.IsPlaying ?? false);
         EqualizerPanel.Visibility = equalizerVisible ? Visibility.Visible : Visibility.Collapsed;
         ClockPanel.Visibility = edgeClockVisible ? Visibility.Visible : Visibility.Collapsed;
         SidePanel.Visibility = equalizerVisible || edgeClockVisible ? Visibility.Visible : Visibility.Collapsed;
@@ -224,7 +227,7 @@ public partial class NowPlayingView : UserControl
         }
     }
 
-    private static void AnimateEqualizerBar(FrameworkElement bar)
+    private void AnimateEqualizerBar(FrameworkElement bar)
     {
         // Animate the bar's own ScaleTransform (render thread) rather than its Height (a layout
         // property, which would force a UI-thread layout pass every animation frame and looks
@@ -244,7 +247,34 @@ public partial class NowPlayingView : UserControl
             RepeatBehavior = RepeatBehavior.Forever,
             EasingFunction = new SineEase { EasingMode = EasingMode.EaseInOut },
         };
-        scale.BeginAnimation(ScaleTransform.ScaleYProperty, animation);
+
+        // Applied via a controllable clock (rather than BeginAnimation) so SetEqualizerPlaying
+        // can pause/resume it in place when playback pauses, instead of only being able to stop
+        // it outright and lose the bar's current height.
+        var clock = animation.CreateClock();
+        scale.ApplyAnimationClock(ScaleTransform.ScaleYProperty, clock);
+        _equalizerClocks.Add(clock);
+    }
+
+    private void SetEqualizerPlaying(bool playing)
+    {
+        if (_isEqualizerPlaying == playing)
+        {
+            return;
+        }
+
+        _isEqualizerPlaying = playing;
+        foreach (var clock in _equalizerClocks)
+        {
+            if (playing)
+            {
+                clock.Controller?.Resume();
+            }
+            else
+            {
+                clock.Controller?.Pause();
+            }
+        }
     }
 
     private void StartClock()
