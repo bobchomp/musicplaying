@@ -245,6 +245,15 @@ public partial class ControlPanelWindow : Window
 
         e.Cancel = true;
 
+        // WPF forbids showing/closing windows from within another window's Closing handler (it
+        // throws "Cannot set Visibility to Visible or call Show, ShowDialog, Close, or
+        // WindowInteropHelper.EnsureHandle while a Window is closing"). Defer to the next
+        // dispatcher cycle, after this Closing dispatch has fully unwound.
+        Dispatcher.BeginInvoke(new Action(ShowCloseConfirmation));
+    }
+
+    private void ShowCloseConfirmation()
+    {
         var dialog = new CloseConfirmationWindow { Owner = this };
         dialog.ShowDialog();
 

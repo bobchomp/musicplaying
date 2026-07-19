@@ -190,17 +190,25 @@ public partial class NowPlayingView : UserControl
 
     private static void AnimateEqualizerBar(FrameworkElement bar)
     {
+        // Animate the bar's own ScaleTransform (render thread) rather than its Height (a layout
+        // property, which would force a UI-thread layout pass every animation frame and looks
+        // jittery under any UI-thread load, e.g. while the NDI capture loop is running).
+        if (bar.RenderTransform is not ScaleTransform scale)
+        {
+            return;
+        }
+
         var animation = new DoubleAnimation
         {
-            From = 40 + EqualizerRandom.NextDouble() * 50,
-            To = 150 + EqualizerRandom.NextDouble() * 110,
+            From = 0.15 + EqualizerRandom.NextDouble() * 0.2,
+            To = 0.6 + EqualizerRandom.NextDouble() * 0.4,
             Duration = new Duration(TimeSpan.FromMilliseconds(500 + EqualizerRandom.Next(500))),
             BeginTime = TimeSpan.FromMilliseconds(EqualizerRandom.Next(400)),
             AutoReverse = true,
             RepeatBehavior = RepeatBehavior.Forever,
             EasingFunction = new SineEase { EasingMode = EasingMode.EaseInOut },
         };
-        bar.BeginAnimation(FrameworkElement.HeightProperty, animation);
+        scale.BeginAnimation(ScaleTransform.ScaleYProperty, animation);
     }
 
     private void StartClock()
