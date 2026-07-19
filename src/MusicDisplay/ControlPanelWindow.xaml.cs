@@ -7,7 +7,7 @@ namespace MusicDisplay;
 
 public partial class ControlPanelWindow : Window
 {
-    private const string NdiSourceName = "Music Display";
+    private const string DefaultNdiSourceName = "Music Display";
 
     private sealed record MonitorOption(string Label, WinForms.Screen Screen);
 
@@ -107,8 +107,45 @@ public partial class ControlPanelWindow : Window
 
     private void InitializeNetworkFeed()
     {
+        NetworkFeedNameTextBox.Text = string.IsNullOrWhiteSpace(_settings.NetworkFeedName)
+            ? DefaultNdiSourceName
+            : _settings.NetworkFeedName;
+
         if (_settings.NetworkFeedEnabled)
         {
+            SetNetworkFeedEnabled(true);
+        }
+    }
+
+    private string CurrentNdiSourceName =>
+        string.IsNullOrWhiteSpace(NetworkFeedNameTextBox.Text) ? DefaultNdiSourceName : NetworkFeedNameTextBox.Text.Trim();
+
+    private void NetworkFeedNameTextBox_LostFocus(object sender, RoutedEventArgs e) => ApplyNetworkFeedName();
+
+    private void NetworkFeedNameTextBox_KeyDown(object sender, System.Windows.Input.KeyEventArgs e)
+    {
+        if (e.Key == System.Windows.Input.Key.Enter)
+        {
+            ApplyNetworkFeedName();
+        }
+    }
+
+    private void ApplyNetworkFeedName()
+    {
+        var name = CurrentNdiSourceName;
+        if (name == _settings.NetworkFeedName)
+        {
+            return;
+        }
+
+        _settings.NetworkFeedName = name;
+        SettingsService.Save(_settings);
+
+        // NDI has no "rename" call; restarting the sender under the new name is the only way to
+        // change it while already broadcasting.
+        if (_ndiOutputService.IsRunning)
+        {
+            _ndiOutputService.Stop();
             SetNetworkFeedEnabled(true);
         }
     }
@@ -125,14 +162,15 @@ public partial class ControlPanelWindow : Window
 
     private void SetNetworkFeedEnabled(bool enabled)
     {
-        bool actuallyEnabled = enabled && _ndiOutputService.Start(NdiSourceName);
+        var name = CurrentNdiSourceName;
+        bool actuallyEnabled = enabled && _ndiOutputService.Start(name);
         if (!enabled)
         {
             _ndiOutputService.Stop();
         }
 
         NetworkFeedStatusText.Text = actuallyEnabled
-            ? $"Broadcasting as \"{Environment.MachineName} ({NdiSourceName})\" — assign this source in NDI Virtual Input (or your NDI-aware software) on the receiving computer."
+            ? $"Broadcasting as \"{Environment.MachineName} ({name})\" — assign this source in NDI Virtual Input (or your NDI-aware software) on the receiving computer."
             : enabled
                 ? "NDI Runtime not found. Install it (see the installer's Network Feed option, or ndi.video), then try again."
                 : "Lets other computers add this as a live feed (e.g. via NDI Virtual Input in EasyWorship). Requires the free NDI Runtime.";
@@ -144,6 +182,7 @@ public partial class ControlPanelWindow : Window
         NetworkFeedCheckBox.IsEnabled = _ndiOutputService.IsAvailable;
 
         _settings.NetworkFeedEnabled = actuallyEnabled;
+        _settings.NetworkFeedName = name;
         SettingsService.Save(_settings);
     }
 
@@ -312,6 +351,7 @@ public partial class ControlPanelWindow : Window
 
         _isDisplayVisible = visible;
         ToggleDisplayButton.Content = visible ? "Hide Display" : "Show Display";
+        ToggleDisplayMenuItem.Header = visible ? "Hide Display" : "Show Display";
         if (_trayToggleMenuItem != null)
         {
             _trayToggleMenuItem.Text = visible ? "Hide Display" : "Show Display";
@@ -323,6 +363,8 @@ public partial class ControlPanelWindow : Window
         _ndiOutputService.SetBlanked(false);
         BlankButton.Content = "Blank Screen";
         BlankButton.IsEnabled = visible;
+        BlankScreenMenuItem.Header = "Blank Screen";
+        BlankScreenMenuItem.IsEnabled = visible;
 
         _settings.DisplayVisible = visible;
         SettingsService.Save(_settings);
@@ -335,6 +377,7 @@ public partial class ControlPanelWindow : Window
         _previewWindow?.SetBlanked(_isBlanked);
         _ndiOutputService.SetBlanked(_isBlanked);
         BlankButton.Content = _isBlanked ? "Unblank" : "Blank Screen";
+        BlankScreenMenuItem.Header = _isBlanked ? "Unblank" : "Blank Screen";
     }
 
     private void OnDisplayDismissedByUser() => Dispatcher.Invoke(() => SetDisplayVisible(false));
@@ -381,6 +424,10 @@ public partial class ControlPanelWindow : Window
     }
 
     private void ExitMenuItem_Click(object sender, RoutedEventArgs e) => ExitApplication();
+
+    private void OpenSettingsFolderMenuItem_Click(object sender, RoutedEventArgs e) => SettingsService.OpenSettingsFolder();
+
+    private void AboutMenuItem_Click(object sender, RoutedEventArgs e) => new AboutWindow { Owner = this }.ShowDialog();
 
     private void OnNowPlayingChanged(NowPlayingInfo? info)
     {
