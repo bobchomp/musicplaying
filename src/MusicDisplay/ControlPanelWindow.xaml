@@ -94,6 +94,12 @@
                          Checked="LayoutRadio_Checked" />
         </StackPanel>
 
+        <Button x:Name="PreviewButton"
+                Content="Preview"
+                Style="{StaticResource SecondaryButtonStyle}"
+                Click="PreviewButton_Click"
+                Margin="0,0,0,18" />
+
         <Button x:Name="ToggleDisplayButton"
                 Content="Show Display"
                 Height="42"
