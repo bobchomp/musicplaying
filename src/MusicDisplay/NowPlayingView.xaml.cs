@@ -332,17 +332,13 @@ public partial class NowPlayingView : UserControl
             return;
         }
 
-        var typeface = new Typeface(TitleText.FontFamily, TitleText.FontStyle, TitleText.FontWeight, TitleText.FontStretch);
-        var formatted = new FormattedText(
-            TitleText.Text,
-            System.Globalization.CultureInfo.CurrentUICulture,
-            System.Windows.FlowDirection.LeftToRight,
-            typeface,
-            TitleText.FontSize,
-            System.Windows.Media.Brushes.Black,
-            VisualTreeHelper.GetDpi(this).PixelsPerDip);
-
-        double overflow = formatted.Width - _titleClipWidth;
+        // Measuring TitleText itself (rather than reconstructing a Typeface for FormattedText)
+        // guarantees this exactly matches how the TextBlock will actually render — rebuilding a
+        // Typeface from FontFamily/FontWeight risked not matching "Poppins SemiBold", which is a
+        // distinct embedded font family rather than a font-weight variant, and undershot the
+        // real width, cutting the scroll short before it ever reached the end of the title.
+        TitleText.Measure(new System.Windows.Size(double.PositiveInfinity, double.PositiveInfinity));
+        double overflow = TitleText.DesiredSize.Width - _titleClipWidth;
         if (overflow <= 0)
         {
             // Stretch (the default) is what lets TextAlignment center/left/right-align a title
