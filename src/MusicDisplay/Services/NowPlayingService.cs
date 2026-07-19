@@ -1,6 +1,7 @@
 using System.IO;
 using System.Threading;
 using System.Windows.Media.Imaging;
+using Windows.Foundation;
 using Windows.Media.Control;
 using Windows.Storage.Streams;
 
@@ -61,6 +62,32 @@ public sealed class NowPlayingService : IDisposable
     private void OnPlaybackInfoChanged(
         GlobalSystemMediaTransportControlsSession sender,
         PlaybackInfoChangedEventArgs args) => _ = RefreshAsync();
+
+    /// <summary>Sends a play/pause/skip command to whichever app owns the current session. Best-effort:
+    /// silently does nothing if there's no session or the source app doesn't support the command.</summary>
+    public Task PlayPauseAsync() => SendCommandAsync(session => session.TryTogglePlayPauseAsync());
+
+    public Task NextAsync() => SendCommandAsync(session => session.TrySkipNextAsync());
+
+    public Task PreviousAsync() => SendCommandAsync(session => session.TrySkipPreviousAsync());
+
+    private async Task SendCommandAsync(Func<GlobalSystemMediaTransportControlsSession, IAsyncOperation<bool>> command)
+    {
+        var session = _currentSession;
+        if (session == null)
+        {
+            return;
+        }
+
+        try
+        {
+            await command(session);
+        }
+        catch (Exception)
+        {
+            // The source app may not support this command, or the session may have just ended.
+        }
+    }
 
     private async Task RefreshAsync()
     {

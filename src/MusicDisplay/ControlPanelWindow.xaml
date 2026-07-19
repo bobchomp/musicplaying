@@ -104,6 +104,58 @@
                        Opacity="0.45"
                        TextWrapping="Wrap"
                        Margin="0,20,0,0" />
+
+            <Border BorderThickness="0,1,0,0" BorderBrush="#22808080" Padding="0,16,0,0" Margin="0,20,0,0">
+                <StackPanel>
+                    <TextBlock Text="PLAYBACK" Style="{StaticResource SectionLabelStyle}" />
+                    <Grid Margin="0,0,0,20">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <Button Grid.Column="0"
+                                x:Name="PreviousButton"
+                                Content="Previous"
+                                Style="{StaticResource SecondaryButtonStyle}"
+                                Click="PreviousButton_Click"
+                                Margin="0,0,6,0" />
+                        <Button Grid.Column="1"
+                                x:Name="PlayPauseButton"
+                                Content="Play"
+                                Style="{StaticResource SecondaryButtonStyle}"
+                                Click="PlayPauseButton_Click"
+                                Margin="6,0,6,0" />
+                        <Button Grid.Column="2"
+                                x:Name="NextButton"
+                                Content="Next"
+                                Style="{StaticResource SecondaryButtonStyle}"
+                                Click="NextButton_Click"
+                                Margin="6,0,0,0" />
+                    </Grid>
+
+                    <TextBlock Text="VOLUME" Style="{StaticResource SectionLabelStyle}" />
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <Button Grid.Column="0"
+                                x:Name="MuteButton"
+                                Content="Mute"
+                                Width="80"
+                                Style="{StaticResource SecondaryButtonStyle}"
+                                Click="MuteButton_Click"
+                                Margin="0,0,12,0" />
+                        <Slider Grid.Column="1"
+                                x:Name="VolumeSlider"
+                                Minimum="0"
+                                Maximum="100"
+                                VerticalAlignment="Center"
+                                ValueChanged="VolumeSlider_ValueChanged" />
+                    </Grid>
+                </StackPanel>
+            </Border>
         </StackPanel>
     </DockPanel>
 </Window>

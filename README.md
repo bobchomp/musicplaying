@@ -40,6 +40,10 @@ rights needed.
    restoring whatever show/hide state it was last in.
 9. Closing the control panel window (the X button) asks whether to minimize it to the tray or
    exit the program completely. **File > Exit** in the menu bar exits immediately without asking.
+10. **Previous / Play / Next** send those commands to whichever app is currently playing (via the
+    same Windows media session used to read the track info), and the volume slider/mute button
+    control the **system's master output volume** — the same one as the Windows volume flyout,
+    not a per-app volume.
 
 ## Building from source
 
@@ -90,6 +94,7 @@ src/MusicDisplay/
     AutostartService.cs       HKCU Run key registration
     AppSettings.cs            settings persisted to %AppData%\MusicDisplay\settings.json
     DisplayLayout.cs          Centered / Left / Right layout enum
+    SystemVolumeService.cs    master volume/mute via NAudio's Core Audio API wrapper
   Resources/Fonts/            embedded Poppins font files (OFL licensed, see OFL.txt)
 installer/installer.iss       Inno Setup installer script
 ```
