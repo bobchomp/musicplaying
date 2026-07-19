@@ -25,14 +25,17 @@ rights needed.
    Album right (the art hugs that edge of the screen with the title and artist text stacked next
    to it, aligned to the same edge). Album left/right also fills the empty space on the opposite
    side with an animated equalizer-bar visualization while something's playing.
-4. Click **Show Display** to put up the fullscreen now-playing screen. Press **Ctrl+Q** or click
+4. Click **Preview** to open what the display would show in a plain, resizable window — handy for
+   checking a layout without putting the real fullscreen display up. It stays live, updating as
+   the track, layout, or blank state changes, until you close it.
+5. Click **Show Display** to put up the fullscreen now-playing screen. Press **Ctrl+Q** or click
    **Hide Display** to take it down.
-5. Once the display is up, **Blank Screen** temporarily hides the album art and text (just the
+6. Once the display is up, **Blank Screen** temporarily hides the album art and text (just the
    background color stays) without closing the display window — click **Unblank** to bring them
    back.
-6. Check **Start with Windows** to have it launch automatically (minimized to the tray) at login,
+7. Check **Start with Windows** to have it launch automatically (minimized to the tray) at login,
    restoring whatever show/hide state it was last in.
-7. Closing the control panel window minimizes it to the tray rather than quitting — right-click
+8. Closing the control panel window minimizes it to the tray rather than quitting — right-click
    the tray icon to fully exit.
 
 ## Building from source
@@ -74,7 +77,9 @@ installer, and attaches `MusicDisplaySetup.exe` to a new GitHub Release.
 src/MusicDisplay/
   App.xaml(.cs)              application entry point, single-instance guard
   ControlPanelWindow.xaml(.cs) monitor picker, show/hide, tray icon, autostart toggle
-  DisplayWindow.xaml(.cs)      the fullscreen now-playing screen
+  DisplayWindow.xaml(.cs)      the fullscreen now-playing screen (hosts NowPlayingView)
+  PreviewWindow.xaml(.cs)      windowed preview of the same content (hosts NowPlayingView)
+  NowPlayingView.xaml(.cs)     shared album art / title / artist visual + equalizer bars
   Services/
     NowPlayingService.cs      reads title/artist/artwork via Windows SMTC
     ColorExtractor.cs         picks a background accent color from the album art

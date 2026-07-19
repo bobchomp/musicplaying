@@ -15,11 +15,13 @@ public partial class ControlPanelWindow : Window
 
     private WinForms.NotifyIcon? _trayIcon;
     private WinForms.ToolStripMenuItem? _trayToggleMenuItem;
+    private PreviewWindow? _previewWindow;
 
     private bool _isDisplayVisible;
     private bool _isBlanked;
     private bool _suppressMonitorSelectionHandling;
     private bool _isExiting;
+    private NowPlayingInfo? _lastNowPlayingInfo;
 
     public ControlPanelWindow(bool startMinimized)
     {
@@ -98,6 +100,24 @@ public partial class ControlPanelWindow : Window
         _settings.Layout = layout;
         SettingsService.Save(_settings);
         _displayWindow.SetLayout(layout);
+        _previewWindow?.SetLayout(layout);
+    }
+
+    private void PreviewButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (_previewWindow == null)
+        {
+            _previewWindow = new PreviewWindow { Owner = this };
+            _previewWindow.Closed += (_, _) => _previewWindow = null;
+            _previewWindow.SetLayout(_settings.Layout);
+            _previewWindow.SetBlanked(_isBlanked);
+            _previewWindow.UpdateNowPlaying(_lastNowPlayingInfo);
+            _previewWindow.Show();
+        }
+        else
+        {
+            _previewWindow.Activate();
+        }
     }
 
     private void SetupTrayIcon()
@@ -211,6 +231,7 @@ public partial class ControlPanelWindow : Window
 
         _isBlanked = false;
         _displayWindow.SetBlanked(false);
+        _previewWindow?.SetBlanked(false);
         BlankButton.Content = "Blank Screen";
         BlankButton.IsEnabled = visible;
 
@@ -222,6 +243,7 @@ public partial class ControlPanelWindow : Window
     {
         _isBlanked = !_isBlanked;
         _displayWindow.SetBlanked(_isBlanked);
+        _previewWindow?.SetBlanked(_isBlanked);
         BlankButton.Content = _isBlanked ? "Unblank" : "Blank Screen";
     }
 
@@ -239,7 +261,9 @@ public partial class ControlPanelWindow : Window
     {
         Dispatcher.Invoke(() =>
         {
+            _lastNowPlayingInfo = info;
             _displayWindow.UpdateNowPlaying(info);
+            _previewWindow?.UpdateNowPlaying(info);
 
             NowPlayingStatusText.Text = info != null && !string.IsNullOrWhiteSpace(info.Title)
                 ? $"{info.Title} — {info.Artist}"
@@ -260,6 +284,7 @@ public partial class ControlPanelWindow : Window
             _trayIcon.Dispose();
         }
 
+        _previewWindow?.Close();
         _displayWindow.Close();
         Close();
 

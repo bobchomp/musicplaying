@@ -2,15 +2,9 @@ using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Interop;
-using System.Windows.Media;
-using System.Windows.Media.Animation;
 using MusicDisplay.Services;
 using WinForms = System.Windows.Forms;
-using Color = System.Windows.Media.Color;
-using ColorConverter = System.Windows.Media.ColorConverter;
 using KeyEventArgs = System.Windows.Input.KeyEventArgs;
-using HorizontalAlignment = System.Windows.HorizontalAlignment;
-using TextAlignment = System.Windows.TextAlignment;
 using Keyboard = System.Windows.Input.Keyboard;
 using ModifierKeys = System.Windows.Input.ModifierKeys;
 
@@ -31,24 +25,13 @@ public partial class DisplayWindow : Window
     private const uint SwpShowWindow = 0x0040;
     private const uint SwpNoActivate = 0x0010;
 
-    private const double EdgeLayoutWidth = 900;
-    private const double EdgeLayoutInset = 160;
-
-    private static readonly Color IdleBackgroundColor = (Color)ColorConverter.ConvertFromString("#0B0B0D")!;
-    private static readonly Random EqualizerRandom = new();
-
     /// <summary>Raised when the user dismisses the display themselves (Ctrl+Q).</summary>
     public event Action? DismissedByUser;
-
-    private NowPlayingInfo? _lastInfo;
-    private bool _isBlanked;
-    private DisplayLayout _layout = DisplayLayout.Centered;
 
     public DisplayWindow()
     {
         InitializeComponent();
         PreviewKeyDown += OnPreviewKeyDown;
-        StartEqualizerAnimation();
     }
 
     private void OnPreviewKeyDown(object sender, KeyEventArgs e)
@@ -81,120 +64,9 @@ public partial class DisplayWindow : Window
 
     public void HideDisplay() => Hide();
 
-    public void UpdateNowPlaying(NowPlayingInfo? info)
-    {
-        _lastInfo = info;
-        Render();
-    }
+    public void UpdateNowPlaying(NowPlayingInfo? info) => View.UpdateNowPlaying(info);
 
-    /// <summary>Temporarily hides the album art and text without closing the display window.</summary>
-    public void SetBlanked(bool blanked)
-    {
-        _isBlanked = blanked;
-        Render();
-    }
+    public void SetBlanked(bool blanked) => View.SetBlanked(blanked);
 
-    public void SetLayout(DisplayLayout layout)
-    {
-        _layout = layout;
-
-        switch (layout)
-        {
-            case DisplayLayout.Left:
-                ContentPanel.HorizontalAlignment = HorizontalAlignment.Left;
-                ContentPanel.Width = EdgeLayoutWidth;
-                ContentPanel.Margin = new Thickness(EdgeLayoutInset, 0, 0, 0);
-                ArtBorder.HorizontalAlignment = HorizontalAlignment.Left;
-                TitleText.TextAlignment = TextAlignment.Left;
-                ArtistText.TextAlignment = TextAlignment.Left;
-                EqualizerPanel.HorizontalAlignment = HorizontalAlignment.Right;
-                EqualizerPanel.Margin = new Thickness(0, 0, EdgeLayoutInset, 0);
-                break;
-
-            case DisplayLayout.Right:
-                ContentPanel.HorizontalAlignment = HorizontalAlignment.Right;
-                ContentPanel.Width = EdgeLayoutWidth;
-                ContentPanel.Margin = new Thickness(0, 0, EdgeLayoutInset, 0);
-                ArtBorder.HorizontalAlignment = HorizontalAlignment.Right;
-                TitleText.TextAlignment = TextAlignment.Right;
-                ArtistText.TextAlignment = TextAlignment.Right;
-                EqualizerPanel.HorizontalAlignment = HorizontalAlignment.Left;
-                EqualizerPanel.Margin = new Thickness(EdgeLayoutInset, 0, 0, 0);
-                break;
-
-            default:
-                ContentPanel.HorizontalAlignment = HorizontalAlignment.Center;
-                ContentPanel.Width = double.NaN;
-                ContentPanel.Margin = new Thickness(0);
-                ArtBorder.HorizontalAlignment = HorizontalAlignment.Center;
-                TitleText.TextAlignment = TextAlignment.Center;
-                ArtistText.TextAlignment = TextAlignment.Center;
-                EqualizerPanel.HorizontalAlignment = HorizontalAlignment.Center;
-                EqualizerPanel.Margin = new Thickness(0);
-                break;
-        }
-
-        Render();
-    }
-
-    private void Render()
-    {
-        var info = _lastInfo;
-        bool hasTrack = !_isBlanked && info != null && !string.IsNullOrWhiteSpace(info.Title);
-
-        // The equalizer only makes sense filling the empty space beside an edge-aligned layout;
-        // Centered has no single obvious empty side to put it in.
-        EqualizerPanel.Visibility = hasTrack && _layout != DisplayLayout.Centered
-            ? Visibility.Visible
-            : Visibility.Collapsed;
-
-        if (!hasTrack)
-        {
-            ContentPanel.Visibility = Visibility.Collapsed;
-            AnimateBackgroundTo(IdleBackgroundColor);
-            return;
-        }
-
-        TitleText.Text = info!.Title;
-        ArtistText.Text = info.Artist;
-        AlbumArtImage.Source = info.Thumbnail;
-        ContentPanel.Visibility = Visibility.Visible;
-
-        var accent = ColorExtractor.GetAccentColor(info.Thumbnail, IdleBackgroundColor);
-        AnimateBackgroundTo(accent);
-    }
-
-    private void AnimateBackgroundTo(Color target)
-    {
-        var animation = new ColorAnimation
-        {
-            To = target,
-            Duration = new Duration(TimeSpan.FromMilliseconds(600)),
-            EasingFunction = new QuadraticEase { EasingMode = EasingMode.EaseInOut },
-        };
-        BackgroundBrush.BeginAnimation(SolidColorBrush.ColorProperty, animation);
-    }
-
-    private void StartEqualizerAnimation()
-    {
-        foreach (var bar in new FrameworkElement[] { EqBar1, EqBar2, EqBar3, EqBar4, EqBar5, EqBar6 })
-        {
-            AnimateEqualizerBar(bar);
-        }
-    }
-
-    private static void AnimateEqualizerBar(FrameworkElement bar)
-    {
-        var animation = new DoubleAnimation
-        {
-            From = 40 + EqualizerRandom.NextDouble() * 50,
-            To = 150 + EqualizerRandom.NextDouble() * 110,
-            Duration = new Duration(TimeSpan.FromMilliseconds(500 + EqualizerRandom.Next(500))),
-            BeginTime = TimeSpan.FromMilliseconds(EqualizerRandom.Next(400)),
-            AutoReverse = true,
-            RepeatBehavior = RepeatBehavior.Forever,
-            EasingFunction = new SineEase { EasingMode = EasingMode.EaseInOut },
-        };
-        bar.BeginAnimation(FrameworkElement.HeightProperty, animation);
-    }
+    public void SetLayout(DisplayLayout layout) => View.SetLayout(layout);
 }
