@@ -7,11 +7,14 @@ namespace MusicDisplay;
 
 public partial class ControlPanelWindow : Window
 {
+    private const string NdiSourceName = "Music Display";
+
     private sealed record MonitorOption(string Label, WinForms.Screen Screen);
 
     private readonly AppSettings _settings;
     private readonly NowPlayingService _nowPlayingService = new();
     private readonly DisplayWindow _displayWindow = new();
+    private readonly NdiOutputService _ndiOutputService = new();
 
     private WinForms.NotifyIcon? _trayIcon;
     private WinForms.ToolStripMenuItem? _trayToggleMenuItem;
@@ -21,6 +24,7 @@ public partial class ControlPanelWindow : Window
     private bool _isBlanked;
     private bool _suppressMonitorSelectionHandling;
     private bool _suppressVolumeSliderHandling;
+    private bool _suppressNetworkFeedHandling;
     private bool _isExiting;
     private NowPlayingInfo? _lastNowPlayingInfo;
 
@@ -38,6 +42,7 @@ public partial class ControlPanelWindow : Window
         _displayWindow.SetShowClock(_settings.ShowClock);
 
         InitializeVolumeControls();
+        InitializeNetworkFeed();
 
         SetupTrayIcon();
 
@@ -100,6 +105,48 @@ public partial class ControlPanelWindow : Window
         MuteButton.Content = SystemVolumeService.GetMute() ? "Unmute" : "Mute";
     }
 
+    private void InitializeNetworkFeed()
+    {
+        if (_settings.NetworkFeedEnabled)
+        {
+            SetNetworkFeedEnabled(true);
+        }
+    }
+
+    private void NetworkFeedCheckBox_Changed(object sender, RoutedEventArgs e)
+    {
+        if (_suppressNetworkFeedHandling)
+        {
+            return;
+        }
+
+        SetNetworkFeedEnabled(NetworkFeedCheckBox.IsChecked == true);
+    }
+
+    private void SetNetworkFeedEnabled(bool enabled)
+    {
+        bool actuallyEnabled = enabled && _ndiOutputService.Start(NdiSourceName);
+        if (!enabled)
+        {
+            _ndiOutputService.Stop();
+        }
+
+        NetworkFeedStatusText.Text = actuallyEnabled
+            ? $"Broadcasting as \"{Environment.MachineName} ({NdiSourceName})\" — assign this source in NDI Virtual Input (or your NDI-aware software) on the receiving computer."
+            : enabled
+                ? "NDI Runtime not found. Install it (see the installer's Network Feed option, or ndi.video), then try again."
+                : "Lets other computers add this as a live feed (e.g. via NDI Virtual Input in EasyWorship). Requires the free NDI Runtime.";
+
+        _suppressNetworkFeedHandling = true;
+        NetworkFeedCheckBox.IsChecked = actuallyEnabled;
+        _suppressNetworkFeedHandling = false;
+
+        NetworkFeedCheckBox.IsEnabled = _ndiOutputService.IsAvailable;
+
+        _settings.NetworkFeedEnabled = actuallyEnabled;
+        SettingsService.Save(_settings);
+    }
+
     private void LayoutRadio_Checked(object sender, RoutedEventArgs e)
     {
         if (sender is not System.Windows.Controls.RadioButton { Tag: string tag })
@@ -116,6 +163,7 @@ public partial class ControlPanelWindow : Window
         SettingsService.Save(_settings);
         _displayWindow.SetLayout(layout);
         _previewWindow?.SetLayout(layout);
+        _ndiOutputService.SetLayout(layout);
     }
 
     private void PreviewButton_Click(object sender, RoutedEventArgs e)
@@ -263,6 +311,7 @@ public partial class ControlPanelWindow : Window
         _isBlanked = false;
         _displayWindow.SetBlanked(false);
         _previewWindow?.SetBlanked(false);
+        _ndiOutputService.SetBlanked(false);
         BlankButton.Content = "Blank Screen";
         BlankButton.IsEnabled = visible;
 
@@ -275,6 +324,7 @@ public partial class ControlPanelWindow : Window
         _isBlanked = !_isBlanked;
         _displayWindow.SetBlanked(_isBlanked);
         _previewWindow?.SetBlanked(_isBlanked);
+        _ndiOutputService.SetBlanked(_isBlanked);
         BlankButton.Content = _isBlanked ? "Unblank" : "Blank Screen";
     }
 
@@ -318,6 +368,7 @@ public partial class ControlPanelWindow : Window
         SettingsService.Save(_settings);
         _displayWindow.SetShowClock(show);
         _previewWindow?.SetShowClock(show);
+        _ndiOutputService.SetShowClock(show);
     }
 
     private void ExitMenuItem_Click(object sender, RoutedEventArgs e) => ExitApplication();
@@ -329,6 +380,7 @@ public partial class ControlPanelWindow : Window
             _lastNowPlayingInfo = info;
             _displayWindow.UpdateNowPlaying(info);
             _previewWindow?.UpdateNowPlaying(info);
+            _ndiOutputService.UpdateNowPlaying(info);
 
             NowPlayingStatusText.Text = info != null && !string.IsNullOrWhiteSpace(info.Title)
                 ? $"{info.Title} — {info.Artist}"
@@ -351,6 +403,7 @@ public partial class ControlPanelWindow : Window
             _trayIcon.Dispose();
         }
 
+        _ndiOutputService.Dispose();
         _previewWindow?.Close();
         _displayWindow.Close();
         Close();
