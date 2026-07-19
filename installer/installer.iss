@@ -55,9 +55,9 @@ Filename: "http://ndi.link/NDIRedistV6"; Description: "Download and install the 
 function IsNdiRuntimeInstalled(): Boolean;
 begin
   Result :=
-    (GetEnvironmentVariable('NDI_RUNTIME_DIR_V6') <> '') or
-    (GetEnvironmentVariable('NDI_RUNTIME_DIR_V5') <> '') or
-    (GetEnvironmentVariable('NDI_RUNTIME_DIR_V4') <> '');
+    (GetEnv('NDI_RUNTIME_DIR_V6') <> '') or
+    (GetEnv('NDI_RUNTIME_DIR_V5') <> '') or
+    (GetEnv('NDI_RUNTIME_DIR_V4') <> '');
 end;
 
 function NdiRuntimeNotInstalled(): Boolean;
