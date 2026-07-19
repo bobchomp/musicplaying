@@ -11,6 +11,7 @@ public sealed class AppSettings
     public bool StartWithWindows { get; set; }
     public DisplayLayout Layout { get; set; } = DisplayLayout.Centered;
     public bool ShowClock { get; set; }
+    public bool NetworkFeedEnabled { get; set; }
 }
 
 public static class SettingsService

@@ -44,6 +44,27 @@ No admin rights needed.
     same Windows media session used to read the track info), and the volume slider/mute button
     control the **system's master output volume** — the same one as the Windows volume flyout,
     not a per-app volume.
+11. Check **Broadcast over the network (NDI)** to publish the now-playing screen as an NDI source
+    on your LAN — independent of Show Display, so it works whether or not the fullscreen display
+    is up on this machine. See below for what's needed on the receiving computer.
+
+### Sending the feed to EasyWorship (or other NDI-aware software)
+
+The Network Feed broadcasts an [NDI](https://ndi.video) source named
+`<this computer's name> (Music Display)`. To pick it up elsewhere on the network:
+
+- **EasyWorship with native NDI input**: add it directly as an NDI source if your version
+  supports that.
+- **Otherwise**, install [NDI Tools](https://ndi.video/tools/) on the *receiving* computer and
+  use its **NDI Virtual Input** utility to assign the "Music Display" source to one of its
+  virtual webcam slots — it'll then show up in EasyWorship's Feed Editor as an
+  "NDI Webcam Video N (DirectShow)" input device, just like a real webcam.
+
+This requires the free **NDI Runtime** on the *sending* computer (this one) for the toggle to
+work at all. The installer offers to open NDI's official download page for it (skipped
+automatically if a compatible NDI Runtime is already detected) — see
+[Third-party software](#third-party-software) below. If the Network Feed checkbox is greyed out,
+the NDI Runtime isn't installed.
 
 ## Building from source
 
@@ -79,6 +100,15 @@ by default when built without `/DMyAppVersion=...`; see below).
 "Run workflow" button with a version number, this publishes the app, compiles the Inno Setup
 installer, and attaches `MusicDisplaySetup-<version>.exe` to a new GitHub Release.
 
+## Third-party software
+
+The Network Feed feature talks to the **NDI Runtime**, a separate free product from
+[NDI/Vizrt](https://ndi.video) under its own license — this repo doesn't bundle or redistribute
+it. The installer only offers a link to NDI's own official download
+([ndi.link/NDIRedistV6](http://ndi.link/NDIRedistV6)); Music Display never installs it silently
+or without your say-so. See NDI's [SDK licensing terms](https://docs.ndi.video/all/developing-with-ndi/sdk/licensing)
+for details.
+
 ## Project layout
 
 ```
@@ -96,6 +126,8 @@ src/MusicDisplay/
     AppSettings.cs            settings persisted to %AppData%\MusicDisplay\settings.json
     DisplayLayout.cs          Centered / Left / Right layout enum
     SystemVolumeService.cs    master volume/mute via NAudio's Core Audio API wrapper
+    NdiInterop.cs             P/Invoke surface for the NDI SDK
+    NdiOutputService.cs       captures an off-screen NowPlayingView and sends it as NDI
   Resources/Fonts/            embedded Poppins font files (OFL licensed, see OFL.txt)
 installer/installer.iss       Inno Setup installer script
 ```
