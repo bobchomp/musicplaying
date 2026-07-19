@@ -29,14 +29,24 @@
                         <Image x:Name="AlbumArtImage" Stretch="UniformToFill" />
                     </Border>
 
-                    <TextBlock x:Name="TitleText"
-                               FontFamily="pack://application:,,,/Resources/Fonts/#Poppins SemiBold"
-                               FontSize="76"
-                               Foreground="White"
-                               TextAlignment="Center"
-                               TextWrapping="Wrap"
-                               MaxWidth="1500"
-                               Margin="0,52,0,10" />
+                    <!-- Fixed-width clip so a long title scrolls in place on one line instead of
+                         wrapping and pushing the artist text (and everything below it) further
+                         down / off screen. TitleClip.Width is set per-layout in code-behind to
+                         match the old MaxWidth/ContentPanel-width caps. -->
+                    <Border x:Name="TitleClip"
+                            ClipToBounds="True"
+                            Margin="0,52,0,10">
+                        <TextBlock x:Name="TitleText"
+                                   FontFamily="pack://application:,,,/Resources/Fonts/#Poppins SemiBold"
+                                   FontSize="76"
+                                   Foreground="White"
+                                   TextAlignment="Center"
+                                   TextWrapping="NoWrap">
+                            <TextBlock.RenderTransform>
+                                <TranslateTransform x:Name="TitleScrollTransform" />
+                            </TextBlock.RenderTransform>
+                        </TextBlock>
+                    </Border>
 
                     <TextBlock x:Name="ArtistText"
                                FontFamily="pack://application:,,,/Resources/Fonts/#Poppins"
@@ -47,17 +57,39 @@
                                MaxWidth="1500" />
                 </StackPanel>
 
-                <TextBlock x:Name="IdleText"
-                           Text="No music playing"
-                           FontFamily="pack://application:,,,/Resources/Fonts/#Poppins SemiBold"
-                           FontSize="56"
-                           Foreground="#80FFFFFF"
-                           TextAlignment="Center"
-                           TextWrapping="Wrap"
-                           MaxWidth="1500"
-                           HorizontalAlignment="Center"
-                           VerticalAlignment="Center"
-                           Visibility="Collapsed" />
+                <StackPanel x:Name="IdlePanel"
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Center"
+                            Visibility="Collapsed">
+                    <TextBlock x:Name="IdleText"
+                               Text="No music playing"
+                               FontFamily="pack://application:,,,/Resources/Fonts/#Poppins SemiBold"
+                               FontSize="56"
+                               Foreground="#80FFFFFF"
+                               TextAlignment="Center"
+                               TextWrapping="Wrap"
+                               MaxWidth="1500"
+                               HorizontalAlignment="Center" />
+
+                    <!-- Only shown for the Centered layout while idle — Album left/right already
+                         have their own always-on clock in the side panel next to the equalizer. -->
+                    <StackPanel x:Name="IdleClockPanel"
+                                HorizontalAlignment="Center"
+                                Margin="0,36,0,0"
+                                Visibility="Collapsed">
+                        <TextBlock x:Name="IdleClockTimeText"
+                                   FontFamily="pack://application:,,,/Resources/Fonts/#Poppins SemiBold"
+                                   FontSize="56"
+                                   Foreground="#B3FFFFFF"
+                                   TextAlignment="Center"
+                                   Margin="0,0,0,8" />
+                        <TextBlock x:Name="IdleClockDateText"
+                                   FontFamily="pack://application:,,,/Resources/Fonts/#Poppins"
+                                   FontSize="30"
+                                   Foreground="#80FFFFFF"
+                                   TextAlignment="Center" />
+                    </StackPanel>
+                </StackPanel>
 
                 <StackPanel x:Name="SidePanel"
                             HorizontalAlignment="Center"
@@ -66,13 +98,17 @@
                     <!-- Fixed to the same height as the album art (560) plus its bottom margin
                          (52) so the clock's time line lands exactly in line with the title line
                          below, however tall the equalizer happens to be, and even if it's
-                         collapsed (nothing playing but the clock is still on). -->
+                         collapsed (nothing playing but the clock is still on). The equalizer
+                         itself is bottom-aligned with a matching 52px bottom margin so its bars
+                         end flush with the album art's bottom edge, not the bottom of this
+                         whole spacer. -->
                     <Grid Height="612">
                         <StackPanel x:Name="EqualizerPanel"
                                     Orientation="Horizontal"
                                     HorizontalAlignment="Center"
                                     VerticalAlignment="Bottom"
                                     Height="260"
+                                    Margin="0,0,0,52"
                                     Visibility="Collapsed">
                             <StackPanel.Resources>
                                 <Style TargetType="Border">

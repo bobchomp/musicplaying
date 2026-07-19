@@ -20,6 +20,8 @@ public partial class NowPlayingView : UserControl
 {
     private const double EdgeLayoutWidth = 900;
     private const double EdgeLayoutInset = 160;
+    private const double CenteredTitleWidth = 1500;
+    private const double TitleScrollEdgePadding = 40;
     private static readonly Duration LayoutFadeOutDuration = new(TimeSpan.FromMilliseconds(180));
     private static readonly Duration LayoutFadeInDuration = new(TimeSpan.FromMilliseconds(220));
 
@@ -31,6 +33,10 @@ public partial class NowPlayingView : UserControl
     private bool _showClock;
     private DisplayLayout _layout = DisplayLayout.Centered;
     private bool _hasAppliedLayout;
+    private double _titleClipWidth = CenteredTitleWidth;
+    private TextAlignment _titleAlignment = TextAlignment.Center;
+    private readonly List<AnimationClock> _equalizerClocks = new();
+    private bool _isEqualizerPlaying = true;
 
     public NowPlayingView()
     {
@@ -109,11 +115,12 @@ public partial class NowPlayingView : UserControl
                 ContentPanel.Width = EdgeLayoutWidth;
                 ContentPanel.Margin = new Thickness(EdgeLayoutInset, 0, 0, 0);
                 ArtBorder.HorizontalAlignment = HorizontalAlignment.Left;
-                TitleText.TextAlignment = TextAlignment.Left;
+                _titleAlignment = TextAlignment.Left;
+                _titleClipWidth = EdgeLayoutWidth;
                 ArtistText.TextAlignment = TextAlignment.Left;
-                IdleText.HorizontalAlignment = HorizontalAlignment.Left;
+                IdlePanel.HorizontalAlignment = HorizontalAlignment.Left;
                 IdleText.TextAlignment = TextAlignment.Left;
-                IdleText.Margin = new Thickness(EdgeLayoutInset, 0, 0, 0);
+                IdlePanel.Margin = new Thickness(EdgeLayoutInset, 0, 0, 0);
                 SidePanel.HorizontalAlignment = HorizontalAlignment.Right;
                 SidePanel.Margin = new Thickness(0, 0, EdgeLayoutInset, 0);
                 break;
@@ -123,11 +130,12 @@ public partial class NowPlayingView : UserControl
                 ContentPanel.Width = EdgeLayoutWidth;
                 ContentPanel.Margin = new Thickness(0, 0, EdgeLayoutInset, 0);
                 ArtBorder.HorizontalAlignment = HorizontalAlignment.Right;
-                TitleText.TextAlignment = TextAlignment.Right;
+                _titleAlignment = TextAlignment.Right;
+                _titleClipWidth = EdgeLayoutWidth;
                 ArtistText.TextAlignment = TextAlignment.Right;
-                IdleText.HorizontalAlignment = HorizontalAlignment.Right;
+                IdlePanel.HorizontalAlignment = HorizontalAlignment.Right;
                 IdleText.TextAlignment = TextAlignment.Right;
-                IdleText.Margin = new Thickness(0, 0, EdgeLayoutInset, 0);
+                IdlePanel.Margin = new Thickness(0, 0, EdgeLayoutInset, 0);
                 SidePanel.HorizontalAlignment = HorizontalAlignment.Left;
                 SidePanel.Margin = new Thickness(EdgeLayoutInset, 0, 0, 0);
                 break;
@@ -137,15 +145,19 @@ public partial class NowPlayingView : UserControl
                 ContentPanel.Width = double.NaN;
                 ContentPanel.Margin = new Thickness(0);
                 ArtBorder.HorizontalAlignment = HorizontalAlignment.Center;
-                TitleText.TextAlignment = TextAlignment.Center;
+                _titleAlignment = TextAlignment.Center;
+                _titleClipWidth = CenteredTitleWidth;
                 ArtistText.TextAlignment = TextAlignment.Center;
-                IdleText.HorizontalAlignment = HorizontalAlignment.Center;
+                IdlePanel.HorizontalAlignment = HorizontalAlignment.Center;
                 IdleText.TextAlignment = TextAlignment.Center;
-                IdleText.Margin = new Thickness(0);
+                IdlePanel.Margin = new Thickness(0);
                 SidePanel.HorizontalAlignment = HorizontalAlignment.Center;
                 SidePanel.Margin = new Thickness(0);
                 break;
         }
+
+        TitleClip.Width = _titleClipWidth;
+        EvaluateTitleScroll();
     }
 
     private void Render()
@@ -157,15 +169,17 @@ public partial class NowPlayingView : UserControl
         // The side panel only makes sense filling the empty space beside an edge-aligned layout;
         // Centered has no single obvious empty side to put it in.
         bool equalizerVisible = !_isBlanked && hasTrack && onEdgeLayout;
-        bool clockVisible = _showClock && onEdgeLayout;
+        bool edgeClockVisible = _showClock && onEdgeLayout;
+        SetEqualizerPlaying(info?.IsPlaying ?? false);
         EqualizerPanel.Visibility = equalizerVisible ? Visibility.Visible : Visibility.Collapsed;
-        ClockPanel.Visibility = clockVisible ? Visibility.Visible : Visibility.Collapsed;
-        SidePanel.Visibility = equalizerVisible || clockVisible ? Visibility.Visible : Visibility.Collapsed;
+        ClockPanel.Visibility = edgeClockVisible ? Visibility.Visible : Visibility.Collapsed;
+        SidePanel.Visibility = equalizerVisible || edgeClockVisible ? Visibility.Visible : Visibility.Collapsed;
 
         if (_isBlanked)
         {
             ContentPanel.Visibility = Visibility.Collapsed;
-            IdleText.Visibility = Visibility.Collapsed;
+            IdlePanel.Visibility = Visibility.Collapsed;
+            StopTitleScroll();
             AnimateBackgroundTo(IdleBackgroundColor);
             return;
         }
@@ -173,16 +187,22 @@ public partial class NowPlayingView : UserControl
         if (!hasTrack)
         {
             ContentPanel.Visibility = Visibility.Collapsed;
-            IdleText.Visibility = Visibility.Visible;
+            IdlePanel.Visibility = Visibility.Visible;
+
+            // Centered has no side panel to show a clock in, so give it one here instead — only
+            // while idle, since once art/title are on screen there's no room for it.
+            IdleClockPanel.Visibility = _showClock && !onEdgeLayout ? Visibility.Visible : Visibility.Collapsed;
+            StopTitleScroll();
             AnimateBackgroundTo(IdleBackgroundColor);
             return;
         }
 
-        IdleText.Visibility = Visibility.Collapsed;
+        IdlePanel.Visibility = Visibility.Collapsed;
         TitleText.Text = info!.Title;
         ArtistText.Text = info.Artist;
         AlbumArtImage.Source = info.Thumbnail;
         ContentPanel.Visibility = Visibility.Visible;
+        EvaluateTitleScroll();
 
         var accent = ColorExtractor.GetAccentColor(info.Thumbnail, IdleBackgroundColor);
         AnimateBackgroundTo(accent);
@@ -207,7 +227,7 @@ public partial class NowPlayingView : UserControl
         }
     }
 
-    private static void AnimateEqualizerBar(FrameworkElement bar)
+    private void AnimateEqualizerBar(FrameworkElement bar)
     {
         // Animate the bar's own ScaleTransform (render thread) rather than its Height (a layout
         // property, which would force a UI-thread layout pass every animation frame and looks
@@ -227,7 +247,34 @@ public partial class NowPlayingView : UserControl
             RepeatBehavior = RepeatBehavior.Forever,
             EasingFunction = new SineEase { EasingMode = EasingMode.EaseInOut },
         };
-        scale.BeginAnimation(ScaleTransform.ScaleYProperty, animation);
+
+        // Applied via a controllable clock (rather than BeginAnimation) so SetEqualizerPlaying
+        // can pause/resume it in place when playback pauses, instead of only being able to stop
+        // it outright and lose the bar's current height.
+        var clock = animation.CreateClock();
+        scale.ApplyAnimationClock(ScaleTransform.ScaleYProperty, clock);
+        _equalizerClocks.Add(clock);
+    }
+
+    private void SetEqualizerPlaying(bool playing)
+    {
+        if (_isEqualizerPlaying == playing)
+        {
+            return;
+        }
+
+        _isEqualizerPlaying = playing;
+        foreach (var clock in _equalizerClocks)
+        {
+            if (playing)
+            {
+                clock.Controller?.Resume();
+            }
+            else
+            {
+                clock.Controller?.Pause();
+            }
+        }
     }
 
     private void StartClock()
@@ -245,7 +292,73 @@ public partial class NowPlayingView : UserControl
     private void UpdateClockText()
     {
         var now = DateTime.Now;
-        ClockTimeText.Text = now.ToString("t");
-        ClockDateText.Text = now.ToString("D");
+        var time = now.ToString("t");
+        var date = now.ToString("D");
+        ClockTimeText.Text = time;
+        ClockDateText.Text = date;
+        IdleClockTimeText.Text = time;
+        IdleClockDateText.Text = date;
+    }
+
+    private void StopTitleScroll()
+    {
+        TitleScrollTransform.BeginAnimation(TranslateTransform.XProperty, null);
+        TitleScrollTransform.X = 0;
+    }
+
+    /// <summary>Measures the title text against the current per-layout clip width (set in
+    /// <see cref="ApplyLayout"/>) and, if it's too wide for one line, scrolls it back and forth
+    /// instead of wrapping — wrapping would push the artist text (and everything below it)
+    /// further down or off screen.</summary>
+    private void EvaluateTitleScroll()
+    {
+        StopTitleScroll();
+
+        if (string.IsNullOrEmpty(TitleText.Text))
+        {
+            return;
+        }
+
+        var typeface = new Typeface(TitleText.FontFamily, TitleText.FontStyle, TitleText.FontWeight, TitleText.FontStretch);
+        var formatted = new FormattedText(
+            TitleText.Text,
+            System.Globalization.CultureInfo.CurrentUICulture,
+            System.Windows.FlowDirection.LeftToRight,
+            typeface,
+            TitleText.FontSize,
+            System.Windows.Media.Brushes.Black,
+            VisualTreeHelper.GetDpi(this).PixelsPerDip);
+
+        double overflow = formatted.Width - _titleClipWidth;
+        if (overflow <= 0)
+        {
+            TitleText.TextAlignment = _titleAlignment;
+            return;
+        }
+
+        // TitleText is wider than TitleClip here, so WPF arranges it flush at the clip's left
+        // edge regardless of TextAlignment (alignment only has room to act when there's leftover
+        // space) — the translation below starts from that same left edge, i.e. the beginning of
+        // the title.
+        double distance = overflow + TitleScrollEdgePadding;
+        var holdTime = TimeSpan.FromSeconds(1.2);
+        var scrollTime = TimeSpan.FromSeconds(Math.Max(3, distance / 60.0));
+        var scrollEndTime = holdTime + scrollTime;
+        var holdEndTime = scrollEndTime + holdTime;
+        var cycleEndTime = holdEndTime + scrollTime;
+
+        var animation = new DoubleAnimationUsingKeyFrames { RepeatBehavior = RepeatBehavior.Forever };
+        animation.KeyFrames.Add(new LinearDoubleKeyFrame(0, KeyTime.FromTimeSpan(holdTime)));
+        animation.KeyFrames.Add(new EasingDoubleKeyFrame(-distance, KeyTime.FromTimeSpan(scrollEndTime))
+        {
+            EasingFunction = new SineEase { EasingMode = EasingMode.EaseInOut },
+        });
+        animation.KeyFrames.Add(new LinearDoubleKeyFrame(-distance, KeyTime.FromTimeSpan(holdEndTime)));
+        animation.KeyFrames.Add(new EasingDoubleKeyFrame(0, KeyTime.FromTimeSpan(cycleEndTime))
+        {
+            EasingFunction = new SineEase { EasingMode = EasingMode.EaseInOut },
+        });
+
+        TitleScrollTransform.BeginAnimation(TranslateTransform.XProperty, animation);
     }
 }
