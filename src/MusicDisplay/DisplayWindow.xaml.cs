@@ -69,4 +69,6 @@ public partial class DisplayWindow : Window
     public void SetBlanked(bool blanked) => View.SetBlanked(blanked);
 
     public void SetLayout(DisplayLayout layout) => View.SetLayout(layout);
+
+    public void SetShowClock(bool show) => View.SetShowClock(show);
 }

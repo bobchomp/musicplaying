@@ -33,6 +33,9 @@ public partial class ControlPanelWindow : Window
         InitializeLayoutSelection();
         StartWithWindowsCheckBox.IsChecked = AutostartService.IsEnabled();
 
+        ShowClockCheckBox.IsChecked = _settings.ShowClock;
+        _displayWindow.SetShowClock(_settings.ShowClock);
+
         SetupTrayIcon();
 
         _displayWindow.DismissedByUser += OnDisplayDismissedByUser;
@@ -111,6 +114,7 @@ public partial class ControlPanelWindow : Window
             _previewWindow.Closed += (_, _) => _previewWindow = null;
             _previewWindow.SetLayout(_settings.Layout);
             _previewWindow.SetBlanked(_isBlanked);
+            _previewWindow.SetShowClock(_settings.ShowClock);
             _previewWindow.UpdateNowPlaying(_lastNowPlayingInfo);
             _previewWindow.Show();
         }
@@ -180,7 +184,22 @@ public partial class ControlPanelWindow : Window
         }
 
         e.Cancel = true;
-        WindowState = WindowState.Minimized;
+
+        var dialog = new CloseConfirmationWindow { Owner = this };
+        dialog.ShowDialog();
+
+        switch (dialog.Choice)
+        {
+            case CloseChoice.MinimizeToTray:
+                WindowState = WindowState.Minimized;
+                break;
+            case CloseChoice.ExitProgram:
+                ExitApplication();
+                break;
+            case CloseChoice.Cancel:
+            default:
+                break;
+        }
     }
 
     private void MonitorComboBox_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
@@ -256,6 +275,17 @@ public partial class ControlPanelWindow : Window
         _settings.StartWithWindows = enabled;
         SettingsService.Save(_settings);
     }
+
+    private void ShowClockCheckBox_Changed(object sender, RoutedEventArgs e)
+    {
+        bool show = ShowClockCheckBox.IsChecked == true;
+        _settings.ShowClock = show;
+        SettingsService.Save(_settings);
+        _displayWindow.SetShowClock(show);
+        _previewWindow?.SetShowClock(show);
+    }
+
+    private void ExitMenuItem_Click(object sender, RoutedEventArgs e) => ExitApplication();
 
     private void OnNowPlayingChanged(NowPlayingInfo? info)
     {

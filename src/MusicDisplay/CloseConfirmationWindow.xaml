@@ -1,0 +1,38 @@
+<Window x:Class="MusicDisplay.CloseConfirmationWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Music Display"
+        Width="360"
+        SizeToContent="Height"
+        ResizeMode="NoResize"
+        WindowStartupLocation="CenterOwner"
+        ShowInTaskbar="False"
+        FontFamily="pack://application:,,,/Resources/Fonts/#Poppins"
+        Icon="Assets/icon.ico">
+
+    <StackPanel Margin="28">
+        <TextBlock Text="Close Music Display?"
+                   FontFamily="pack://application:,,,/Resources/Fonts/#Poppins SemiBold"
+                   FontSize="18"
+                   Margin="0,0,0,8" />
+        <TextBlock Text="You can keep it running in the background so the display can still be shown, or exit completely."
+                   FontSize="13"
+                   Opacity="0.7"
+                   TextWrapping="Wrap"
+                   Margin="0,0,0,20" />
+
+        <Button Content="Minimize to Tray"
+                Height="42"
+                Style="{StaticResource AccentButtonStyle}"
+                Click="MinimizeButton_Click"
+                Margin="0,0,0,10" />
+        <Button Content="Exit Program"
+                Style="{StaticResource SecondaryButtonStyle}"
+                Click="ExitButton_Click"
+                Margin="0,0,0,10" />
+        <Button Content="Cancel"
+                Style="{StaticResource SecondaryButtonStyle}"
+                Click="CancelButton_Click"
+                IsCancel="True" />
+    </StackPanel>
+</Window>

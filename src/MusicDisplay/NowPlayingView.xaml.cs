@@ -2,6 +2,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
+using System.Windows.Threading;
 using MusicDisplay.Services;
 using Color = System.Windows.Media.Color;
 using ColorConverter = System.Windows.Media.ColorConverter;
@@ -19,18 +20,23 @@ public partial class NowPlayingView : UserControl
 {
     private const double EdgeLayoutWidth = 900;
     private const double EdgeLayoutInset = 160;
+    private static readonly Duration LayoutFadeOutDuration = new(TimeSpan.FromMilliseconds(180));
+    private static readonly Duration LayoutFadeInDuration = new(TimeSpan.FromMilliseconds(220));
 
     private static readonly Color IdleBackgroundColor = (Color)ColorConverter.ConvertFromString("#0B0B0D")!;
     private static readonly Random EqualizerRandom = new();
 
     private NowPlayingInfo? _lastInfo;
     private bool _isBlanked;
+    private bool _showClock;
     private DisplayLayout _layout = DisplayLayout.Centered;
+    private bool _hasAppliedLayout;
 
     public NowPlayingView()
     {
         InitializeComponent();
         StartEqualizerAnimation();
+        StartClock();
     }
 
     public void UpdateNowPlaying(NowPlayingInfo? info)
@@ -46,10 +52,56 @@ public partial class NowPlayingView : UserControl
         Render();
     }
 
+    /// <summary>Shows a live clock stacked below the equalizer bars (Album left/right layouts only).</summary>
+    public void SetShowClock(bool show)
+    {
+        _showClock = show;
+        Render();
+    }
+
     public void SetLayout(DisplayLayout layout)
     {
-        _layout = layout;
+        // The very first layout application (app/preview startup) has nothing on screen yet to
+        // transition from, so apply it immediately rather than fading in from nothing.
+        if (!_hasAppliedLayout)
+        {
+            _hasAppliedLayout = true;
+            _layout = layout;
+            ApplyLayout(layout);
+            Render();
+            return;
+        }
 
+        if (layout == _layout)
+        {
+            return;
+        }
+
+        var fadeOut = new DoubleAnimation
+        {
+            To = 0,
+            Duration = LayoutFadeOutDuration,
+            EasingFunction = new QuadraticEase { EasingMode = EasingMode.EaseIn },
+        };
+        fadeOut.Completed += (_, _) =>
+        {
+            _layout = layout;
+            ApplyLayout(layout);
+            Render();
+
+            var fadeIn = new DoubleAnimation
+            {
+                To = 1,
+                Duration = LayoutFadeInDuration,
+                EasingFunction = new QuadraticEase { EasingMode = EasingMode.EaseOut },
+            };
+            LayoutGrid.BeginAnimation(UIElement.OpacityProperty, fadeIn);
+        };
+        LayoutGrid.BeginAnimation(UIElement.OpacityProperty, fadeOut);
+    }
+
+    private void ApplyLayout(DisplayLayout layout)
+    {
         switch (layout)
         {
             case DisplayLayout.Left:
@@ -59,8 +111,8 @@ public partial class NowPlayingView : UserControl
                 ArtBorder.HorizontalAlignment = HorizontalAlignment.Left;
                 TitleText.TextAlignment = TextAlignment.Left;
                 ArtistText.TextAlignment = TextAlignment.Left;
-                EqualizerPanel.HorizontalAlignment = HorizontalAlignment.Right;
-                EqualizerPanel.Margin = new Thickness(0, 0, EdgeLayoutInset, 0);
+                SidePanel.HorizontalAlignment = HorizontalAlignment.Right;
+                SidePanel.Margin = new Thickness(0, 0, EdgeLayoutInset, 0);
                 break;
 
             case DisplayLayout.Right:
@@ -70,8 +122,8 @@ public partial class NowPlayingView : UserControl
                 ArtBorder.HorizontalAlignment = HorizontalAlignment.Right;
                 TitleText.TextAlignment = TextAlignment.Right;
                 ArtistText.TextAlignment = TextAlignment.Right;
-                EqualizerPanel.HorizontalAlignment = HorizontalAlignment.Left;
-                EqualizerPanel.Margin = new Thickness(EdgeLayoutInset, 0, 0, 0);
+                SidePanel.HorizontalAlignment = HorizontalAlignment.Left;
+                SidePanel.Margin = new Thickness(EdgeLayoutInset, 0, 0, 0);
                 break;
 
             default:
@@ -81,24 +133,25 @@ public partial class NowPlayingView : UserControl
                 ArtBorder.HorizontalAlignment = HorizontalAlignment.Center;
                 TitleText.TextAlignment = TextAlignment.Center;
                 ArtistText.TextAlignment = TextAlignment.Center;
-                EqualizerPanel.HorizontalAlignment = HorizontalAlignment.Center;
-                EqualizerPanel.Margin = new Thickness(0);
+                SidePanel.HorizontalAlignment = HorizontalAlignment.Center;
+                SidePanel.Margin = new Thickness(0);
                 break;
         }
-
-        Render();
     }
 
     private void Render()
     {
         var info = _lastInfo;
         bool hasTrack = !_isBlanked && info != null && !string.IsNullOrWhiteSpace(info.Title);
+        bool onEdgeLayout = _layout != DisplayLayout.Centered;
 
-        // The equalizer only makes sense filling the empty space beside an edge-aligned layout;
+        // The side panel only makes sense filling the empty space beside an edge-aligned layout;
         // Centered has no single obvious empty side to put it in.
-        EqualizerPanel.Visibility = hasTrack && _layout != DisplayLayout.Centered
-            ? Visibility.Visible
-            : Visibility.Collapsed;
+        bool equalizerVisible = hasTrack && onEdgeLayout;
+        bool clockVisible = _showClock && onEdgeLayout;
+        EqualizerPanel.Visibility = equalizerVisible ? Visibility.Visible : Visibility.Collapsed;
+        ClockPanel.Visibility = clockVisible ? Visibility.Visible : Visibility.Collapsed;
+        SidePanel.Visibility = equalizerVisible || clockVisible ? Visibility.Visible : Visibility.Collapsed;
 
         if (!hasTrack)
         {
@@ -148,5 +201,24 @@ public partial class NowPlayingView : UserControl
             EasingFunction = new SineEase { EasingMode = EasingMode.EaseInOut },
         };
         bar.BeginAnimation(FrameworkElement.HeightProperty, animation);
+    }
+
+    private void StartClock()
+    {
+        UpdateClockText();
+
+        var timer = new DispatcherTimer(DispatcherPriority.Background)
+        {
+            Interval = TimeSpan.FromSeconds(1),
+        };
+        timer.Tick += (_, _) => UpdateClockText();
+        timer.Start();
+    }
+
+    private void UpdateClockText()
+    {
+        var now = DateTime.Now;
+        ClockTimeText.Text = now.ToString("t");
+        ClockDateText.Text = now.ToString("D");
     }
 }
