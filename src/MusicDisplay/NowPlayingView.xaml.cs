@@ -332,14 +332,19 @@ public partial class NowPlayingView : UserControl
         double overflow = formatted.Width - _titleClipWidth;
         if (overflow <= 0)
         {
+            // Stretch (the default) is what lets TextAlignment center/left/right-align a title
+            // that's narrower than the clip within the clip's full width.
+            TitleText.HorizontalAlignment = HorizontalAlignment.Stretch;
             TitleText.TextAlignment = _titleAlignment;
             return;
         }
 
-        // TitleText is wider than TitleClip here, so WPF arranges it flush at the clip's left
-        // edge regardless of TextAlignment (alignment only has room to act when there's leftover
-        // space) — the translation below starts from that same left edge, i.e. the beginning of
-        // the title.
+        // WPF's Stretch alignment falls back to centering the overflow when content is bigger
+        // than its container — which would clip both ends of the title symmetrically instead of
+        // showing the beginning. Forcing Left here arranges it flush at TitleClip's left edge, so
+        // the translation below (starting at 0) genuinely starts from the beginning of the title.
+        TitleText.HorizontalAlignment = HorizontalAlignment.Left;
+
         double distance = overflow + TitleScrollEdgePadding;
         var holdTime = TimeSpan.FromSeconds(1.2);
         var scrollTime = TimeSpan.FromSeconds(Math.Max(3, distance / 60.0));

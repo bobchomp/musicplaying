@@ -70,25 +70,27 @@
                                TextWrapping="Wrap"
                                MaxWidth="1500"
                                HorizontalAlignment="Center" />
+                </StackPanel>
 
-                    <!-- Only shown for the Centered layout while idle — Album left/right already
-                         have their own always-on clock in the side panel next to the equalizer. -->
-                    <StackPanel x:Name="IdleClockPanel"
-                                HorizontalAlignment="Center"
-                                Margin="0,36,0,0"
-                                Visibility="Collapsed">
-                        <TextBlock x:Name="IdleClockTimeText"
-                                   FontFamily="pack://application:,,,/Resources/Fonts/#Poppins SemiBold"
-                                   FontSize="56"
-                                   Foreground="#B3FFFFFF"
-                                   TextAlignment="Center"
-                                   Margin="0,0,0,8" />
-                        <TextBlock x:Name="IdleClockDateText"
-                                   FontFamily="pack://application:,,,/Resources/Fonts/#Poppins"
-                                   FontSize="30"
-                                   Foreground="#80FFFFFF"
-                                   TextAlignment="Center" />
-                    </StackPanel>
+                <!-- Only shown for the Centered layout while idle — Album left/right already have
+                     their own always-on clock in the side panel next to the equalizer. Anchored
+                     near the bottom of the screen rather than stacked under IdleText above. -->
+                <StackPanel x:Name="IdleClockPanel"
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Bottom"
+                            Margin="0,0,0,100"
+                            Visibility="Collapsed">
+                    <TextBlock x:Name="IdleClockTimeText"
+                               FontFamily="pack://application:,,,/Resources/Fonts/#Poppins SemiBold"
+                               FontSize="56"
+                               Foreground="#B3FFFFFF"
+                               TextAlignment="Center"
+                               Margin="0,0,0,8" />
+                    <TextBlock x:Name="IdleClockDateText"
+                               FontFamily="pack://application:,,,/Resources/Fonts/#Poppins"
+                               FontSize="30"
+                               Foreground="#80FFFFFF"
+                               TextAlignment="Center" />
                 </StackPanel>
 
                 <StackPanel x:Name="SidePanel"
