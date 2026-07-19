@@ -42,6 +42,8 @@ public sealed class NdiOutputService : IDisposable
     /// so the UI can disable the toggle instead of letting the user retry forever.</summary>
     public bool IsAvailable { get; private set; } = true;
 
+    public bool IsRunning => _isRunning;
+
     public NdiOutputService()
     {
         _captureView.Measure(new Size(Width, Height));

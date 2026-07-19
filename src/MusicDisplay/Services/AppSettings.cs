@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.IO;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -12,6 +13,7 @@ public sealed class AppSettings
     public DisplayLayout Layout { get; set; } = DisplayLayout.Centered;
     public bool ShowClock { get; set; }
     public bool NetworkFeedEnabled { get; set; }
+    public string NetworkFeedName { get; set; } = "Music Display";
 }
 
 public static class SettingsService
@@ -65,6 +67,25 @@ public static class SettingsService
         catch (Exception)
         {
             // Best-effort persistence; nothing actionable if this fails.
+        }
+    }
+
+    public static void OpenSettingsFolder()
+    {
+        try
+        {
+            var dir = Path.GetDirectoryName(FilePath);
+            if (string.IsNullOrEmpty(dir))
+            {
+                return;
+            }
+
+            Directory.CreateDirectory(dir);
+            Process.Start(new ProcessStartInfo { FileName = dir, UseShellExecute = true });
+        }
+        catch (Exception)
+        {
+            // Best-effort; nothing actionable if Explorer can't be launched.
         }
     }
 }

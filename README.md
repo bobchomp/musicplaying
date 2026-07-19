@@ -44,20 +44,28 @@ No admin rights needed.
     same Windows media session used to read the track info), and the volume slider/mute button
     control the **system's master output volume** — the same one as the Windows volume flyout,
     not a per-app volume.
-11. Check **Broadcast over the network (NDI)** to publish the now-playing screen as an NDI source
-    on your LAN — independent of Show Display, so it works whether or not the fullscreen display
-    is up on this machine. See below for what's needed on the receiving computer.
+11. Set a **Stream name** and check **Broadcast over the network (NDI)** to publish the
+    now-playing screen as an NDI source on your LAN — independent of Show Display, so it works
+    whether or not the fullscreen display is up on this machine. Changing the name while
+    broadcasting restarts the feed under the new name. See below for what's needed on the
+    receiving computer.
+
+The menu bar also has **View** (Show/Hide Display, Blank Screen, Preview — the same actions as
+the buttons below), **Settings > Open Settings Folder** (jumps straight to where
+`settings.json` lives), and **Help > About Music Display** (version number, a GitHub link, and
+the third-party license disclosures also listed below).
 
 ### Sending the feed to EasyWorship (or other NDI-aware software)
 
 The Network Feed broadcasts an [NDI](https://ndi.video) source named
-`<this computer's name> (Music Display)`. To pick it up elsewhere on the network:
+`<this computer's name> (<your stream name>)` — "Music Display" by default. To pick it up
+elsewhere on the network:
 
 - **EasyWorship with native NDI input**: add it directly as an NDI source if your version
   supports that.
 - **Otherwise**, install [NDI Tools](https://ndi.video/tools/) on the *receiving* computer and
-  use its **NDI Virtual Input** utility to assign the "Music Display" source to one of its
-  virtual webcam slots — it'll then show up in EasyWorship's Feed Editor as an
+  use its **NDI Virtual Input** utility to assign your stream's source to one of its virtual
+  webcam slots — it'll then show up in EasyWorship's Feed Editor as an
   "NDI Webcam Video N (DirectShow)" input device, just like a real webcam.
 
 This requires the free **NDI Runtime** on the *sending* computer (this one) for the toggle to
