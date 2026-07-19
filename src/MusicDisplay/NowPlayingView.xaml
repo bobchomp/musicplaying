@@ -66,13 +66,17 @@
                     <!-- Fixed to the same height as the album art (560) plus its bottom margin
                          (52) so the clock's time line lands exactly in line with the title line
                          below, however tall the equalizer happens to be, and even if it's
-                         collapsed (nothing playing but the clock is still on). -->
+                         collapsed (nothing playing but the clock is still on). The equalizer
+                         itself is bottom-aligned with a matching 52px bottom margin so its bars
+                         end flush with the album art's bottom edge, not the bottom of this
+                         whole spacer. -->
                     <Grid Height="612">
                         <StackPanel x:Name="EqualizerPanel"
                                     Orientation="Horizontal"
                                     HorizontalAlignment="Center"
                                     VerticalAlignment="Bottom"
                                     Height="260"
+                                    Margin="0,0,0,52"
                                     Visibility="Collapsed">
                             <StackPanel.Resources>
                                 <Style TargetType="Border">
