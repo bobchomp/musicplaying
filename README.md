@@ -14,8 +14,8 @@ no per-app setup. Requires Windows 10 version 1809 (build 17763) or later.
 
 ## Getting the app
 
-Grab `MusicDisplaySetup.exe` from the repo's [Releases](../../releases) page and run it. No admin
-rights needed.
+Grab `MusicDisplaySetup-<version>.exe` from the repo's [Releases](../../releases) page and run it.
+No admin rights needed.
 
 ## Using it
 
@@ -70,13 +70,14 @@ Requires [Inno Setup 6](https://jrsoftware.org/isinfo.php). After publishing (ab
 & "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" installer\installer.iss
 ```
 
-The installer is written to `installer\output\MusicDisplaySetup.exe`.
+The installer is written to `installer\output\MusicDisplaySetup-<version>.exe` (version `1.0.0`
+by default when built without `/DMyAppVersion=...`; see below).
 
 ## CI/CD
 
 **`.github/workflows/release.yml`** — on pushing a tag like `v1.0.0`, or via the Actions tab's
 "Run workflow" button with a version number, this publishes the app, compiles the Inno Setup
-installer, and attaches `MusicDisplaySetup.exe` to a new GitHub Release.
+installer, and attaches `MusicDisplaySetup-<version>.exe` to a new GitHub Release.
 
 ## Project layout
 
