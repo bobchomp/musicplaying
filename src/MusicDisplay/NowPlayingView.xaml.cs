@@ -35,6 +35,7 @@ public partial class NowPlayingView : UserControl
     private bool _hasAppliedLayout;
     private double _titleClipWidth = CenteredTitleWidth;
     private TextAlignment _titleAlignment = TextAlignment.Center;
+    private string? _titleScrollAppliedFor;
     private readonly List<AnimationClock> _equalizerClocks = new();
     private bool _isEqualizerPlaying = true;
 
@@ -158,6 +159,7 @@ public partial class NowPlayingView : UserControl
 
         TitleClip.Width = _titleClipWidth;
         EvaluateTitleScroll();
+        _titleScrollAppliedFor = TitleText.Text;
     }
 
     private void Render()
@@ -180,6 +182,7 @@ public partial class NowPlayingView : UserControl
             ContentPanel.Visibility = Visibility.Collapsed;
             IdlePanel.Visibility = Visibility.Collapsed;
             StopTitleScroll();
+            _titleScrollAppliedFor = null;
             AnimateBackgroundTo(IdleBackgroundColor);
             return;
         }
@@ -193,6 +196,7 @@ public partial class NowPlayingView : UserControl
             // while idle, since once art/title are on screen there's no room for it.
             IdleClockPanel.Visibility = _showClock && !onEdgeLayout ? Visibility.Visible : Visibility.Collapsed;
             StopTitleScroll();
+            _titleScrollAppliedFor = null;
             AnimateBackgroundTo(IdleBackgroundColor);
             return;
         }
@@ -202,7 +206,16 @@ public partial class NowPlayingView : UserControl
         ArtistText.Text = info.Artist;
         AlbumArtImage.Source = info.Thumbnail;
         ContentPanel.Visibility = Visibility.Visible;
-        EvaluateTitleScroll();
+
+        // NowPlayingChanged (and so Render) can fire repeatedly for the same track — many media
+        // sources raise SMTC's PlaybackInfoChanged well beyond actual play/pause toggles. Only
+        // re-evaluating when the title text itself changes stops that from continually
+        // restarting the scroll animation before it ever completes a lap.
+        if (_titleScrollAppliedFor != info.Title)
+        {
+            _titleScrollAppliedFor = info.Title;
+            EvaluateTitleScroll();
+        }
 
         var accent = ColorExtractor.GetAccentColor(info.Thumbnail, IdleBackgroundColor);
         AnimateBackgroundTo(accent);
