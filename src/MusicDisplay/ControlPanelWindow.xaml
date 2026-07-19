@@ -3,10 +3,11 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="Music Display"
         Width="440"
-        SizeToContent="Height"
+        Height="700"
         MinWidth="440"
         MaxWidth="440"
-        ResizeMode="CanMinimize"
+        MinHeight="360"
+        ResizeMode="CanResize"
         WindowStartupLocation="CenterScreen"
         FontFamily="pack://application:,,,/Resources/Fonts/#Poppins"
         Icon="Assets/icon.ico"
@@ -32,6 +33,7 @@
             </MenuItem>
         </Menu>
 
+        <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
         <StackPanel Margin="28">
             <TextBlock Text="Music Display"
                        FontFamily="pack://application:,,,/Resources/Fonts/#Poppins SemiBold"
@@ -191,5 +193,6 @@
                 </StackPanel>
             </Border>
         </StackPanel>
+        </ScrollViewer>
     </DockPanel>
 </Window>
