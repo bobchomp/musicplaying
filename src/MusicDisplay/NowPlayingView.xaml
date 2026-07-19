@@ -47,80 +47,101 @@
                                MaxWidth="1500" />
                 </StackPanel>
 
+                <TextBlock x:Name="IdleText"
+                           Text="No music playing"
+                           FontFamily="pack://application:,,,/Resources/Fonts/#Poppins SemiBold"
+                           FontSize="56"
+                           Foreground="#80FFFFFF"
+                           TextAlignment="Center"
+                           TextWrapping="Wrap"
+                           MaxWidth="1500"
+                           HorizontalAlignment="Center"
+                           VerticalAlignment="Center"
+                           Visibility="Collapsed" />
+
                 <StackPanel x:Name="SidePanel"
                             HorizontalAlignment="Center"
                             VerticalAlignment="Center"
                             Visibility="Collapsed">
-                    <StackPanel x:Name="EqualizerPanel"
-                                Orientation="Horizontal"
-                                HorizontalAlignment="Center"
-                                Height="260"
-                                Visibility="Collapsed">
-                        <StackPanel.Resources>
-                            <Style TargetType="Border">
-                                <Setter Property="Width" Value="34" />
-                                <Setter Property="Height" Value="260" />
-                                <Setter Property="Margin" Value="14,0" />
-                                <Setter Property="CornerRadius" Value="8" />
-                                <Setter Property="Background" Value="#4DFFFFFF" />
-                                <Setter Property="VerticalAlignment" Value="Bottom" />
-                                <Setter Property="RenderTransformOrigin" Value="0.5,1" />
-                            </Style>
-                        </StackPanel.Resources>
-                        <!-- Bars are a fixed height and animate a per-instance ScaleTransform
-                             (render-thread, bottom-anchored) instead of the Height property, so
-                             the animation doesn't force a UI-thread layout pass every frame. -->
-                        <Border x:Name="EqBar1">
-                            <Border.RenderTransform>
-                                <ScaleTransform ScaleY="0.35" />
-                            </Border.RenderTransform>
-                        </Border>
-                        <Border x:Name="EqBar2">
-                            <Border.RenderTransform>
-                                <ScaleTransform ScaleY="0.65" />
-                            </Border.RenderTransform>
-                        </Border>
-                        <Border x:Name="EqBar3">
-                            <Border.RenderTransform>
-                                <ScaleTransform ScaleY="0.88" />
-                            </Border.RenderTransform>
-                        </Border>
-                        <Border x:Name="EqBar4">
-                            <Border.RenderTransform>
-                                <ScaleTransform ScaleY="0.5" />
-                            </Border.RenderTransform>
-                        </Border>
-                        <Border x:Name="EqBar5">
-                            <Border.RenderTransform>
-                                <ScaleTransform ScaleY="0.77" />
-                            </Border.RenderTransform>
-                        </Border>
-                        <Border x:Name="EqBar6">
-                            <Border.RenderTransform>
-                                <ScaleTransform ScaleY="0.42" />
-                            </Border.RenderTransform>
-                        </Border>
-                    </StackPanel>
+                    <!-- Fixed to the same height as the album art (560) plus its bottom margin
+                         (52) so the clock's time line lands exactly in line with the title line
+                         below, however tall the equalizer happens to be, and even if it's
+                         collapsed (nothing playing but the clock is still on). -->
+                    <Grid Height="612">
+                        <StackPanel x:Name="EqualizerPanel"
+                                    Orientation="Horizontal"
+                                    HorizontalAlignment="Center"
+                                    VerticalAlignment="Bottom"
+                                    Height="260"
+                                    Visibility="Collapsed">
+                            <StackPanel.Resources>
+                                <Style TargetType="Border">
+                                    <Setter Property="Width" Value="34" />
+                                    <Setter Property="Height" Value="260" />
+                                    <Setter Property="Margin" Value="14,0" />
+                                    <Setter Property="CornerRadius" Value="8" />
+                                    <Setter Property="Background" Value="#4DFFFFFF" />
+                                    <Setter Property="VerticalAlignment" Value="Bottom" />
+                                    <Setter Property="RenderTransformOrigin" Value="0.5,1" />
+                                </Style>
+                            </StackPanel.Resources>
+                            <!-- Bars are a fixed height and animate a per-instance ScaleTransform
+                                 (render-thread, bottom-anchored) instead of the Height property,
+                                 so the animation doesn't force a UI-thread layout pass every
+                                 frame. -->
+                            <Border x:Name="EqBar1">
+                                <Border.RenderTransform>
+                                    <ScaleTransform ScaleY="0.35" />
+                                </Border.RenderTransform>
+                            </Border>
+                            <Border x:Name="EqBar2">
+                                <Border.RenderTransform>
+                                    <ScaleTransform ScaleY="0.65" />
+                                </Border.RenderTransform>
+                            </Border>
+                            <Border x:Name="EqBar3">
+                                <Border.RenderTransform>
+                                    <ScaleTransform ScaleY="0.88" />
+                                </Border.RenderTransform>
+                            </Border>
+                            <Border x:Name="EqBar4">
+                                <Border.RenderTransform>
+                                    <ScaleTransform ScaleY="0.5" />
+                                </Border.RenderTransform>
+                            </Border>
+                            <Border x:Name="EqBar5">
+                                <Border.RenderTransform>
+                                    <ScaleTransform ScaleY="0.77" />
+                                </Border.RenderTransform>
+                            </Border>
+                            <Border x:Name="EqBar6">
+                                <Border.RenderTransform>
+                                    <ScaleTransform ScaleY="0.42" />
+                                </Border.RenderTransform>
+                            </Border>
+                        </StackPanel>
+                    </Grid>
 
                     <StackPanel x:Name="ClockPanel"
                                 HorizontalAlignment="Center"
-                                Margin="0,40,0,0"
                                 Visibility="Collapsed">
+                        <!-- Same font/size as TitleText/ArtistText, and the same 10px gap
+                             between them, so the two lines match exactly. -->
                         <TextBlock x:Name="ClockTimeText"
                                    FontFamily="pack://application:,,,/Resources/Fonts/#Poppins SemiBold"
-                                   FontSize="56"
+                                   FontSize="76"
                                    Foreground="White"
                                    TextAlignment="Center"
                                    TextWrapping="Wrap"
-                                   MaxWidth="600" />
+                                   MaxWidth="1500"
+                                   Margin="0,0,0,10" />
                         <TextBlock x:Name="ClockDateText"
                                    FontFamily="pack://application:,,,/Resources/Fonts/#Poppins"
-                                   FontSize="26"
-                                   Foreground="#BFFFFFFF"
+                                   FontSize="38"
+                                   Foreground="#D9FFFFFF"
                                    TextAlignment="Center"
                                    TextWrapping="Wrap"
-                                   MaxWidth="600"
-                                   Margin="0,4,0,0" />
+                                   MaxWidth="1500" />
                     </StackPanel>
                 </StackPanel>
             </Grid>
