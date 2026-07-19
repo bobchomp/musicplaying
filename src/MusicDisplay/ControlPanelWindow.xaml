@@ -13,127 +13,149 @@
         Closing="Window_Closing"
         StateChanged="Window_StateChanged">
 
-    <Window.Resources>
-        <Style x:Key="AccentButtonStyle" TargetType="Button">
-            <Setter Property="Background" Value="#5865F2" />
-            <Setter Property="Foreground" Value="White" />
-            <Setter Property="FontFamily" Value="pack://application:,,,/Resources/Fonts/#Poppins Medium" />
-            <Setter Property="FontSize" Value="15" />
-            <Setter Property="Cursor" Value="Hand" />
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="Button">
-                        <Border x:Name="Bg" Background="{TemplateBinding Background}" CornerRadius="8">
-                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
-                        </Border>
-                        <ControlTemplate.Triggers>
-                            <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="Bg" Property="Opacity" Value="0.88" />
-                            </Trigger>
-                            <Trigger Property="IsPressed" Value="True">
-                                <Setter TargetName="Bg" Property="Opacity" Value="0.75" />
-                            </Trigger>
-                        </ControlTemplate.Triggers>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
+    <DockPanel LastChildFill="True">
+        <Menu DockPanel.Dock="Top">
+            <MenuItem Header="_File">
+                <MenuItem Header="_Exit" Click="ExitMenuItem_Click" />
+            </MenuItem>
+        </Menu>
 
-        <Style x:Key="SectionLabelStyle" TargetType="TextBlock">
-            <Setter Property="FontSize" Value="12" />
-            <Setter Property="Opacity" Value="0.6" />
-            <Setter Property="Margin" Value="0,0,0,6" />
-        </Style>
+        <StackPanel Margin="28">
+            <TextBlock Text="Music Display"
+                       FontFamily="pack://application:,,,/Resources/Fonts/#Poppins SemiBold"
+                       FontSize="22"
+                       Margin="0,0,0,4" />
+            <TextBlock Text="Shows the album cover, title, and artist of whatever's playing."
+                       FontSize="12"
+                       Opacity="0.6"
+                       TextWrapping="Wrap"
+                       Margin="0,0,0,24" />
 
-        <Style x:Key="SecondaryButtonStyle" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
-            <Setter Property="FontFamily" Value="pack://application:,,,/Resources/Fonts/#Poppins Medium" />
-            <Setter Property="FontSize" Value="14" />
-            <Setter Property="Height" Value="38" />
-        </Style>
+            <TextBlock Text="MONITOR" Style="{StaticResource SectionLabelStyle}" />
+            <ComboBox x:Name="MonitorComboBox"
+                      Height="34"
+                      DisplayMemberPath="Label"
+                      SelectionChanged="MonitorComboBox_SelectionChanged"
+                      Margin="0,0,0,20" />
 
-        <Style x:Key="LayoutRadioStyle" TargetType="RadioButton">
-            <Setter Property="Margin" Value="0,0,18,0" />
-            <Setter Property="GroupName" Value="Layout" />
-        </Style>
-    </Window.Resources>
-
-    <StackPanel Margin="28">
-        <TextBlock Text="Music Display"
-                   FontFamily="pack://application:,,,/Resources/Fonts/#Poppins SemiBold"
-                   FontSize="22"
-                   Margin="0,0,0,4" />
-        <TextBlock Text="Shows the album cover, title, and artist of whatever's playing."
-                   FontSize="12"
-                   Opacity="0.6"
-                   TextWrapping="Wrap"
-                   Margin="0,0,0,24" />
-
-        <TextBlock Text="MONITOR" Style="{StaticResource SectionLabelStyle}" />
-        <ComboBox x:Name="MonitorComboBox"
-                  Height="34"
-                  DisplayMemberPath="Label"
-                  SelectionChanged="MonitorComboBox_SelectionChanged"
-                  Margin="0,0,0,20" />
-
-        <TextBlock Text="LAYOUT" Style="{StaticResource SectionLabelStyle}" />
-        <StackPanel Orientation="Horizontal" Margin="0,0,0,20">
-            <RadioButton x:Name="LayoutCenteredRadio"
-                         Content="Centered"
-                         Tag="Centered"
-                         Style="{StaticResource LayoutRadioStyle}"
-                         Checked="LayoutRadio_Checked" />
-            <RadioButton x:Name="LayoutLeftRadio"
-                         Content="Album left"
-                         Tag="Left"
-                         Style="{StaticResource LayoutRadioStyle}"
-                         Checked="LayoutRadio_Checked" />
-            <RadioButton x:Name="LayoutRightRadio"
-                         Content="Album right"
-                         Tag="Right"
-                         Style="{StaticResource LayoutRadioStyle}"
-                         Checked="LayoutRadio_Checked" />
-        </StackPanel>
-
-        <Button x:Name="PreviewButton"
-                Content="Preview"
-                Style="{StaticResource SecondaryButtonStyle}"
-                Click="PreviewButton_Click"
-                Margin="0,0,0,18" />
-
-        <Button x:Name="ToggleDisplayButton"
-                Content="Show Display"
-                Height="42"
-                Style="{StaticResource AccentButtonStyle}"
-                Click="ToggleDisplayButton_Click"
-                Margin="0,0,0,10" />
-
-        <Button x:Name="BlankButton"
-                Content="Blank Screen"
-                Style="{StaticResource SecondaryButtonStyle}"
-                Click="BlankButton_Click"
-                IsEnabled="False"
-                Margin="0,0,0,18" />
-
-        <CheckBox x:Name="StartWithWindowsCheckBox"
-                  Content="Start with Windows"
-                  Checked="StartWithWindowsCheckBox_Changed"
-                  Unchecked="StartWithWindowsCheckBox_Changed"
-                  Margin="0,0,0,20" />
-
-        <Border BorderThickness="0,1,0,0" BorderBrush="#22808080" Padding="0,16,0,0">
-            <StackPanel>
-                <TextBlock Text="NOW PLAYING" Style="{StaticResource SectionLabelStyle}" />
-                <TextBlock x:Name="NowPlayingStatusText"
-                           Text="No music detected"
-                           FontSize="13"
-                           TextWrapping="Wrap" />
+            <TextBlock Text="LAYOUT" Style="{StaticResource SectionLabelStyle}" />
+            <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
+                <RadioButton x:Name="LayoutCenteredRadio"
+                             Content="Centered"
+                             Tag="Centered"
+                             Style="{StaticResource LayoutRadioStyle}"
+                             Checked="LayoutRadio_Checked" />
+                <RadioButton x:Name="LayoutLeftRadio"
+                             Content="Album left"
+                             Tag="Left"
+                             Style="{StaticResource LayoutRadioStyle}"
+                             Checked="LayoutRadio_Checked" />
+                <RadioButton x:Name="LayoutRightRadio"
+                             Content="Album right"
+                             Tag="Right"
+                             Style="{StaticResource LayoutRadioStyle}"
+                             Checked="LayoutRadio_Checked" />
             </StackPanel>
-        </Border>
 
-        <TextBlock Text="Closing this window keeps Music Display running in the tray. Right-click the tray icon to exit."
-                   FontSize="11"
-                   Opacity="0.45"
-                   TextWrapping="Wrap"
-                   Margin="0,20,0,0" />
-    </StackPanel>
+            <CheckBox x:Name="ShowClockCheckBox"
+                      Content="Show time and date (Album left/right only)"
+                      Checked="ShowClockCheckBox_Changed"
+                      Unchecked="ShowClockCheckBox_Changed"
+                      Margin="0,0,0,20" />
+
+            <Button x:Name="PreviewButton"
+                    Content="Preview"
+                    Style="{StaticResource SecondaryButtonStyle}"
+                    Click="PreviewButton_Click"
+                    Margin="0,0,0,18" />
+
+            <Button x:Name="ToggleDisplayButton"
+                    Content="Show Display"
+                    Height="42"
+                    Style="{StaticResource AccentButtonStyle}"
+                    Click="ToggleDisplayButton_Click"
+                    Margin="0,0,0,10" />
+
+            <Button x:Name="BlankButton"
+                    Content="Blank Screen"
+                    Style="{StaticResource SecondaryButtonStyle}"
+                    Click="BlankButton_Click"
+                    IsEnabled="False"
+                    Margin="0,0,0,18" />
+
+            <CheckBox x:Name="StartWithWindowsCheckBox"
+                      Content="Start with Windows"
+                      Checked="StartWithWindowsCheckBox_Changed"
+                      Unchecked="StartWithWindowsCheckBox_Changed"
+                      Margin="0,0,0,20" />
+
+            <Border BorderThickness="0,1,0,0" BorderBrush="#22808080" Padding="0,16,0,0">
+                <StackPanel>
+                    <TextBlock Text="NOW PLAYING" Style="{StaticResource SectionLabelStyle}" />
+                    <TextBlock x:Name="NowPlayingStatusText"
+                               Text="No music detected"
+                               FontSize="13"
+                               TextWrapping="Wrap" />
+                </StackPanel>
+            </Border>
+
+            <TextBlock Text="Closing this window asks whether to minimize to the tray or exit."
+                       FontSize="11"
+                       Opacity="0.45"
+                       TextWrapping="Wrap"
+                       Margin="0,20,0,0" />
+
+            <Border BorderThickness="0,1,0,0" BorderBrush="#22808080" Padding="0,16,0,0" Margin="0,20,0,0">
+                <StackPanel>
+                    <TextBlock Text="PLAYBACK" Style="{StaticResource SectionLabelStyle}" />
+                    <Grid Margin="0,0,0,20">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <Button Grid.Column="0"
+                                x:Name="PreviousButton"
+                                Content="Previous"
+                                Style="{StaticResource SecondaryButtonStyle}"
+                                Click="PreviousButton_Click"
+                                Margin="0,0,6,0" />
+                        <Button Grid.Column="1"
+                                x:Name="PlayPauseButton"
+                                Content="Play"
+                                Style="{StaticResource SecondaryButtonStyle}"
+                                Click="PlayPauseButton_Click"
+                                Margin="6,0,6,0" />
+                        <Button Grid.Column="2"
+                                x:Name="NextButton"
+                                Content="Next"
+                                Style="{StaticResource SecondaryButtonStyle}"
+                                Click="NextButton_Click"
+                                Margin="6,0,0,0" />
+                    </Grid>
+
+                    <TextBlock Text="VOLUME" Style="{StaticResource SectionLabelStyle}" />
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <Button Grid.Column="0"
+                                x:Name="MuteButton"
+                                Content="Mute"
+                                Width="80"
+                                Style="{StaticResource SecondaryButtonStyle}"
+                                Click="MuteButton_Click"
+                                Margin="0,0,12,0" />
+                        <Slider Grid.Column="1"
+                                x:Name="VolumeSlider"
+                                Minimum="0"
+                                Maximum="100"
+                                VerticalAlignment="Center"
+                                ValueChanged="VolumeSlider_ValueChanged" />
+                    </Grid>
+                </StackPanel>
+            </Border>
+        </StackPanel>
+    </DockPanel>
 </Window>

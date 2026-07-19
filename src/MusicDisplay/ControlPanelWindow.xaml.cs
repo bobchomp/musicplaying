@@ -20,6 +20,7 @@ public partial class ControlPanelWindow : Window
     private bool _isDisplayVisible;
     private bool _isBlanked;
     private bool _suppressMonitorSelectionHandling;
+    private bool _suppressVolumeSliderHandling;
     private bool _isExiting;
     private NowPlayingInfo? _lastNowPlayingInfo;
 
@@ -32,6 +33,11 @@ public partial class ControlPanelWindow : Window
         PopulateMonitors();
         InitializeLayoutSelection();
         StartWithWindowsCheckBox.IsChecked = AutostartService.IsEnabled();
+
+        ShowClockCheckBox.IsChecked = _settings.ShowClock;
+        _displayWindow.SetShowClock(_settings.ShowClock);
+
+        InitializeVolumeControls();
 
         SetupTrayIcon();
 
@@ -85,6 +91,15 @@ public partial class ControlPanelWindow : Window
         radio.IsChecked = true;
     }
 
+    private void InitializeVolumeControls()
+    {
+        _suppressVolumeSliderHandling = true;
+        VolumeSlider.Value = SystemVolumeService.GetVolume() * 100;
+        _suppressVolumeSliderHandling = false;
+
+        MuteButton.Content = SystemVolumeService.GetMute() ? "Unmute" : "Mute";
+    }
+
     private void LayoutRadio_Checked(object sender, RoutedEventArgs e)
     {
         if (sender is not System.Windows.Controls.RadioButton { Tag: string tag })
@@ -111,6 +126,7 @@ public partial class ControlPanelWindow : Window
             _previewWindow.Closed += (_, _) => _previewWindow = null;
             _previewWindow.SetLayout(_settings.Layout);
             _previewWindow.SetBlanked(_isBlanked);
+            _previewWindow.SetShowClock(_settings.ShowClock);
             _previewWindow.UpdateNowPlaying(_lastNowPlayingInfo);
             _previewWindow.Show();
         }
@@ -180,7 +196,22 @@ public partial class ControlPanelWindow : Window
         }
 
         e.Cancel = true;
-        WindowState = WindowState.Minimized;
+
+        var dialog = new CloseConfirmationWindow { Owner = this };
+        dialog.ShowDialog();
+
+        switch (dialog.Choice)
+        {
+            case CloseChoice.MinimizeToTray:
+                WindowState = WindowState.Minimized;
+                break;
+            case CloseChoice.ExitProgram:
+                ExitApplication();
+                break;
+            case CloseChoice.Cancel:
+            default:
+                break;
+        }
     }
 
     private void MonitorComboBox_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
@@ -249,6 +280,29 @@ public partial class ControlPanelWindow : Window
 
     private void OnDisplayDismissedByUser() => Dispatcher.Invoke(() => SetDisplayVisible(false));
 
+    private async void PlayPauseButton_Click(object sender, RoutedEventArgs e) => await _nowPlayingService.PlayPauseAsync();
+
+    private async void PreviousButton_Click(object sender, RoutedEventArgs e) => await _nowPlayingService.PreviousAsync();
+
+    private async void NextButton_Click(object sender, RoutedEventArgs e) => await _nowPlayingService.NextAsync();
+
+    private void MuteButton_Click(object sender, RoutedEventArgs e)
+    {
+        bool nowMuted = !SystemVolumeService.GetMute();
+        SystemVolumeService.SetMute(nowMuted);
+        MuteButton.Content = nowMuted ? "Unmute" : "Mute";
+    }
+
+    private void VolumeSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+    {
+        if (_suppressVolumeSliderHandling)
+        {
+            return;
+        }
+
+        SystemVolumeService.SetVolume((float)(e.NewValue / 100));
+    }
+
     private void StartWithWindowsCheckBox_Changed(object sender, RoutedEventArgs e)
     {
         bool enabled = StartWithWindowsCheckBox.IsChecked == true;
@@ -256,6 +310,17 @@ public partial class ControlPanelWindow : Window
         _settings.StartWithWindows = enabled;
         SettingsService.Save(_settings);
     }
+
+    private void ShowClockCheckBox_Changed(object sender, RoutedEventArgs e)
+    {
+        bool show = ShowClockCheckBox.IsChecked == true;
+        _settings.ShowClock = show;
+        SettingsService.Save(_settings);
+        _displayWindow.SetShowClock(show);
+        _previewWindow?.SetShowClock(show);
+    }
+
+    private void ExitMenuItem_Click(object sender, RoutedEventArgs e) => ExitApplication();
 
     private void OnNowPlayingChanged(NowPlayingInfo? info)
     {
@@ -268,6 +333,8 @@ public partial class ControlPanelWindow : Window
             NowPlayingStatusText.Text = info != null && !string.IsNullOrWhiteSpace(info.Title)
                 ? $"{info.Title} — {info.Artist}"
                 : "No music detected";
+
+            PlayPauseButton.Content = info?.IsPlaying == true ? "Pause" : "Play";
         });
     }
 

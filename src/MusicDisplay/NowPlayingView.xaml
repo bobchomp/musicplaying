@@ -12,7 +12,7 @@
         </Grid.Background>
 
         <Viewbox Stretch="Uniform">
-            <Grid Width="1920" Height="1080">
+            <Grid x:Name="LayoutGrid" Width="1920" Height="1080">
                 <StackPanel x:Name="ContentPanel"
                             HorizontalAlignment="Center"
                             VerticalAlignment="Center"
@@ -47,27 +47,52 @@
                                MaxWidth="1500" />
                 </StackPanel>
 
-                <StackPanel x:Name="EqualizerPanel"
-                            Orientation="Horizontal"
+                <StackPanel x:Name="SidePanel"
                             HorizontalAlignment="Center"
                             VerticalAlignment="Center"
-                            Height="260"
                             Visibility="Collapsed">
-                    <StackPanel.Resources>
-                        <Style TargetType="Border">
-                            <Setter Property="Width" Value="34" />
-                            <Setter Property="Margin" Value="14,0" />
-                            <Setter Property="CornerRadius" Value="8" />
-                            <Setter Property="Background" Value="#4DFFFFFF" />
-                            <Setter Property="VerticalAlignment" Value="Bottom" />
-                        </Style>
-                    </StackPanel.Resources>
-                    <Border x:Name="EqBar1" Height="90" />
-                    <Border x:Name="EqBar2" Height="170" />
-                    <Border x:Name="EqBar3" Height="230" />
-                    <Border x:Name="EqBar4" Height="130" />
-                    <Border x:Name="EqBar5" Height="200" />
-                    <Border x:Name="EqBar6" Height="110" />
+                    <StackPanel x:Name="EqualizerPanel"
+                                Orientation="Horizontal"
+                                HorizontalAlignment="Center"
+                                Height="260"
+                                Visibility="Collapsed">
+                        <StackPanel.Resources>
+                            <Style TargetType="Border">
+                                <Setter Property="Width" Value="34" />
+                                <Setter Property="Margin" Value="14,0" />
+                                <Setter Property="CornerRadius" Value="8" />
+                                <Setter Property="Background" Value="#4DFFFFFF" />
+                                <Setter Property="VerticalAlignment" Value="Bottom" />
+                            </Style>
+                        </StackPanel.Resources>
+                        <Border x:Name="EqBar1" Height="90" />
+                        <Border x:Name="EqBar2" Height="170" />
+                        <Border x:Name="EqBar3" Height="230" />
+                        <Border x:Name="EqBar4" Height="130" />
+                        <Border x:Name="EqBar5" Height="200" />
+                        <Border x:Name="EqBar6" Height="110" />
+                    </StackPanel>
+
+                    <StackPanel x:Name="ClockPanel"
+                                HorizontalAlignment="Center"
+                                Margin="0,40,0,0"
+                                Visibility="Collapsed">
+                        <TextBlock x:Name="ClockTimeText"
+                                   FontFamily="pack://application:,,,/Resources/Fonts/#Poppins SemiBold"
+                                   FontSize="56"
+                                   Foreground="White"
+                                   TextAlignment="Center"
+                                   TextWrapping="Wrap"
+                                   MaxWidth="600" />
+                        <TextBlock x:Name="ClockDateText"
+                                   FontFamily="pack://application:,,,/Resources/Fonts/#Poppins"
+                                   FontSize="26"
+                                   Foreground="#BFFFFFFF"
+                                   TextAlignment="Center"
+                                   TextWrapping="Wrap"
+                                   MaxWidth="600"
+                                   Margin="0,4,0,0" />
+                    </StackPanel>
                 </StackPanel>
             </Grid>
         </Viewbox>
