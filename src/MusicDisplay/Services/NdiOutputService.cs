@@ -68,6 +68,8 @@ public sealed class NdiOutputService : IDisposable
 
     public void SetShowLyrics(bool show) => _captureView.SetShowLyrics(show);
 
+    public void UpdatePosition(PlaybackPosition? position) => _captureView.UpdatePosition(position);
+
     /// <summary>Starts broadcasting under the given NDI source name. Returns false (without
     /// throwing) if the NDI Runtime isn't installed or initialization otherwise fails.</summary>
     public bool Start(string sourceName)

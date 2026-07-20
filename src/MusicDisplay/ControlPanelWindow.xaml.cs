@@ -438,6 +438,18 @@ public partial class ControlPanelWindow : Window
         bool show = ShowLyricsCheckBox.IsChecked == true;
         _settings.ShowLyrics = show;
         SettingsService.Save(_settings);
+
+        if (show)
+        {
+            // Query the live position fresh rather than trusting whatever's cached from the last
+            // SMTC event — some sources batch/delay those, which could otherwise make the lyric
+            // line visibly step through several earlier lines before landing on the current one.
+            var freshPosition = _nowPlayingService.GetCurrentPosition();
+            _displayWindow.UpdatePosition(freshPosition);
+            _previewWindow?.UpdatePosition(freshPosition);
+            _ndiOutputService.UpdatePosition(freshPosition);
+        }
+
         _displayWindow.SetShowLyrics(show);
         _previewWindow?.SetShowLyrics(show);
         _ndiOutputService.SetShowLyrics(show);

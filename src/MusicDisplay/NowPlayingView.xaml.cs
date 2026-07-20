@@ -23,7 +23,7 @@ public partial class NowPlayingView : UserControl
     private const double EdgeLayoutInset = 160;
     private const double CenteredTitleWidth = 1500;
     private const double TitleScrollEdgePadding = 40;
-    private const double TitleScrollPixelsPerSecond = 200;
+    private const double TitleScrollPixelsPerSecond = 110;
     private static readonly TimeSpan LyricsPollInterval = TimeSpan.FromMilliseconds(250);
     private static readonly Duration LayoutFadeOutDuration = new(TimeSpan.FromMilliseconds(180));
     private static readonly Duration LayoutFadeInDuration = new(TimeSpan.FromMilliseconds(220));
@@ -94,6 +94,19 @@ public partial class NowPlayingView : UserControl
         _lyrics = lines is { Count: > 0 } ? lines : null;
         _currentLyricIndex = -1;
         UpdateLyricsVisibility();
+    }
+
+    /// <summary>Overrides the cached position anchor with a freshly-queried one and, if the
+    /// lyrics timer is already running, immediately re-syncs to it — used when lyrics are
+    /// switched on, so the current line lands correctly right away instead of waiting for the
+    /// next SMTC-driven update (which some sources delay or batch).</summary>
+    public void UpdatePosition(PlaybackPosition? position)
+    {
+        _lastPosition = position;
+        if (_lyricsTimer != null)
+        {
+            UpdateCurrentLyricLine();
+        }
     }
 
     /// <summary>Shows the current synced lyric line, karaoke-style, when available.</summary>

@@ -63,6 +63,31 @@ public sealed class NowPlayingService : IDisposable
         GlobalSystemMediaTransportControlsSession sender,
         PlaybackInfoChangedEventArgs args) => _ = RefreshAsync();
 
+    /// <summary>Queries the live playback position directly, bypassing the event-driven refresh
+    /// pipeline entirely. Used when lyrics are switched on, so the synced line lands on the
+    /// actual current position immediately rather than whatever position happened to be cached
+    /// from the last SMTC event — some sources batch/delay those, which otherwise made the lyric
+    /// line visibly step through several earlier lines before catching up.</summary>
+    public PlaybackPosition? GetCurrentPosition()
+    {
+        var session = _currentSession;
+        if (session == null)
+        {
+            return null;
+        }
+
+        try
+        {
+            var timeline = session.GetTimelineProperties();
+            var playback = session.GetPlaybackInfo();
+            return new PlaybackPosition(timeline.Position, timeline.LastUpdatedTime.UtcDateTime, playback?.PlaybackRate ?? 1.0);
+        }
+        catch (Exception)
+        {
+            return null;
+        }
+    }
+
     /// <summary>Sends a play/pause/skip command to whichever app owns the current session. Best-effort:
     /// silently does nothing if there's no session or the source app doesn't support the command.</summary>
     public Task PlayPauseAsync() => SendCommandAsync(session => session.TryTogglePlayPauseAsync());
