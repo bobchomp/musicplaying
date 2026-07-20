@@ -327,36 +327,35 @@ public partial class NowPlayingView : UserControl
     {
         StopTitleScroll();
 
+        // Always left-aligned — the actual position (centered/left/right per layout when the
+        // title fits, or the scroll offsets when it doesn't) is instead computed below and
+        // applied entirely through TitleScrollTransform, rather than relying on WPF's own
+        // alignment/arrange behavior for an element wider than its container.
+        TitleText.HorizontalAlignment = HorizontalAlignment.Left;
+
         if (string.IsNullOrEmpty(TitleText.Text))
         {
             return;
         }
 
-        var typeface = new Typeface(TitleText.FontFamily, TitleText.FontStyle, TitleText.FontWeight, TitleText.FontStretch);
-        var formatted = new FormattedText(
-            TitleText.Text,
-            System.Globalization.CultureInfo.CurrentUICulture,
-            System.Windows.FlowDirection.LeftToRight,
-            typeface,
-            TitleText.FontSize,
-            System.Windows.Media.Brushes.Black,
-            VisualTreeHelper.GetDpi(this).PixelsPerDip);
-
-        double overflow = formatted.Width - _titleClipWidth;
+        // Measuring TitleText itself (rather than reconstructing a Typeface for FormattedText)
+        // guarantees this exactly matches how the TextBlock will actually render — rebuilding a
+        // Typeface from FontFamily/FontWeight risked not matching "Poppins SemiBold", which is a
+        // distinct embedded font family rather than a font-weight variant, and undershot the
+        // real width, cutting the scroll short before it ever reached the end of the title.
+        TitleText.Measure(new System.Windows.Size(double.PositiveInfinity, double.PositiveInfinity));
+        double naturalWidth = TitleText.DesiredSize.Width;
+        double overflow = naturalWidth - _titleClipWidth;
         if (overflow <= 0)
         {
-            // Stretch (the default) is what lets TextAlignment center/left/right-align a title
-            // that's narrower than the clip within the clip's full width.
-            TitleText.HorizontalAlignment = HorizontalAlignment.Stretch;
-            TitleText.TextAlignment = _titleAlignment;
+            TitleScrollTransform.X = _titleAlignment switch
+            {
+                TextAlignment.Center => (_titleClipWidth - naturalWidth) / 2,
+                TextAlignment.Right => _titleClipWidth - naturalWidth,
+                _ => 0,
+            };
             return;
         }
-
-        // WPF's Stretch alignment falls back to centering the overflow when content is bigger
-        // than its container — which would clip both ends of the title symmetrically instead of
-        // showing the beginning. Forcing Left here arranges it flush at TitleClip's left edge, so
-        // the translation below (starting at 0) genuinely starts from the beginning of the title.
-        TitleText.HorizontalAlignment = HorizontalAlignment.Left;
 
         double distance = overflow + TitleScrollEdgePadding;
         var holdTime = TimeSpan.FromSeconds(1.2);
