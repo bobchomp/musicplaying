@@ -64,6 +64,10 @@ public sealed class NdiOutputService : IDisposable
 
     public void SetShowClock(bool show) => _captureView.SetShowClock(show);
 
+    public void SetLyrics(IReadOnlyList<LyricsLine>? lines) => _captureView.SetLyrics(lines);
+
+    public void SetShowLyrics(bool show) => _captureView.SetShowLyrics(show);
+
     /// <summary>Starts broadcasting under the given NDI source name. Returns false (without
     /// throwing) if the NDI Runtime isn't installed or initialization otherwise fails.</summary>
     public bool Start(string sourceName)

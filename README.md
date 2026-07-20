@@ -28,23 +28,31 @@ No admin rights needed.
    while the display is up fades smoothly to the new arrangement instead of snapping.
 4. Check **Show time and date** to add a live clock stacked below the equalizer bars — only
    available with the Album left/right layouts, since Centered has no dedicated empty side for it.
-5. Click **Preview** to open what the display would show in a plain, resizable window — handy for
+5. Check **Show synced lyrics** to display the current line of lyrics, karaoke-style, near the
+   bottom of the screen — looked up automatically from [LRCLIB](https://lrclib.net) by
+   title/artist and synced to playback position. Requires an internet connection; only shows
+   anything when LRCLIB has *synced* (time-stamped) lyrics for that specific track — there's no
+   fallback to a static wall of text. The control panel's status line under the checkbox says
+   whether lyrics were found for the current track. **You're responsible for making sure you have
+   the right to publicly display lyrics for whatever you're playing** (e.g. a CCLI license) —
+   this app only fetches and shows them, it doesn't handle licensing for you.
+6. Click **Preview** to open what the display would show in a plain, resizable window — handy for
    checking a layout without putting the real fullscreen display up. It stays live, updating as
    the track, layout, or blank state changes, until you close it.
-6. Click **Show Display** to put up the fullscreen now-playing screen. Press **Ctrl+Q** or click
+7. Click **Show Display** to put up the fullscreen now-playing screen. Press **Ctrl+Q** or click
    **Hide Display** to take it down.
-7. Once the display is up, **Blank Screen** temporarily hides the album art and text (just the
+8. Once the display is up, **Blank Screen** temporarily hides the album art and text (just the
    background color stays) without closing the display window — click **Unblank** to bring them
    back.
-8. Check **Start with Windows** to have it launch automatically (minimized to the tray) at login,
+9. Check **Start with Windows** to have it launch automatically (minimized to the tray) at login,
    restoring whatever show/hide state it was last in.
-9. Closing the control panel window (the X button) asks whether to minimize it to the tray or
-   exit the program completely. **File > Exit** in the menu bar exits immediately without asking.
-10. **Previous / Play / Next** send those commands to whichever app is currently playing (via the
+10. Closing the control panel window (the X button) asks whether to minimize it to the tray or
+    exit the program completely. **File > Exit** in the menu bar exits immediately without asking.
+11. **Previous / Play / Next** send those commands to whichever app is currently playing (via the
     same Windows media session used to read the track info), and the volume slider/mute button
     control the **system's master output volume** — the same one as the Windows volume flyout,
     not a per-app volume.
-11. Set a **Stream name** and check **Broadcast over the network (NDI)** to publish the
+12. Set a **Stream name** and check **Broadcast over the network (NDI)** to publish the
     now-playing screen as an NDI source on your LAN — independent of Show Display, so it works
     whether or not the fullscreen display is up on this machine. Changing the name while
     broadcasting restarts the feed under the new name. See below for what's needed on the
@@ -117,6 +125,11 @@ it. The installer only offers a link to NDI's own official download
 or without your say-so. See NDI's [SDK licensing terms](https://docs.ndi.video/all/developing-with-ndi/sdk/licensing)
 for details.
 
+The Show synced lyrics feature looks up lyrics from **[LRCLIB](https://lrclib.net)**, a free
+community lyrics database, over the internet at runtime — no lyrics are bundled with this app or
+this repo. As noted above, displaying lyrics publicly is your responsibility to license (e.g. via
+CCLI), not something this app manages.
+
 ## Project layout
 
 ```
@@ -136,6 +149,9 @@ src/MusicDisplay/
     SystemVolumeService.cs    master volume/mute via NAudio's Core Audio API wrapper
     NdiInterop.cs             P/Invoke surface for the NDI SDK
     NdiOutputService.cs       captures an off-screen NowPlayingView and sends it as NDI
+    LyricsService.cs          fetches + parses synced lyrics from LRCLIB
+    LyricsLine.cs             one timestamped line of synced lyrics
+    PlaybackPosition.cs       playback-position snapshot used to sync lyrics to position
   Resources/Fonts/            embedded Poppins font files (OFL licensed, see OFL.txt)
 installer/installer.iss       Inno Setup installer script
 ```

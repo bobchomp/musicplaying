@@ -24,6 +24,7 @@ public partial class NowPlayingView : UserControl
     private const double CenteredTitleWidth = 1500;
     private const double TitleScrollEdgePadding = 40;
     private const double TitleScrollPixelsPerSecond = 200;
+    private static readonly TimeSpan LyricsPollInterval = TimeSpan.FromMilliseconds(250);
     private static readonly Duration LayoutFadeOutDuration = new(TimeSpan.FromMilliseconds(180));
     private static readonly Duration LayoutFadeInDuration = new(TimeSpan.FromMilliseconds(220));
 
@@ -44,6 +45,11 @@ public partial class NowPlayingView : UserControl
     private string? _titleScrollAppliedFor;
     private readonly List<AnimationClock> _equalizerClocks = new();
     private bool _isEqualizerPlaying = true;
+    private IReadOnlyList<LyricsLine>? _lyrics;
+    private bool _showLyrics;
+    private int _currentLyricIndex = -1;
+    private PlaybackPosition? _lastPosition;
+    private DispatcherTimer? _lyricsTimer;
 
     public NowPlayingView()
     {
@@ -55,7 +61,9 @@ public partial class NowPlayingView : UserControl
     public void UpdateNowPlaying(NowPlayingInfo? info)
     {
         _lastInfo = info;
+        _lastPosition = info?.Position;
         Render();
+        UpdateLyricsVisibility();
     }
 
     /// <summary>Temporarily hides the album art and text without changing anything else.</summary>
@@ -63,6 +71,7 @@ public partial class NowPlayingView : UserControl
     {
         _isBlanked = blanked;
         Render();
+        UpdateLyricsVisibility();
     }
 
     /// <summary>Shows a live clock stacked below the equalizer bars (Album left/right layouts only).</summary>
@@ -70,6 +79,22 @@ public partial class NowPlayingView : UserControl
     {
         _showClock = show;
         Render();
+    }
+
+    /// <summary>Sets the synced lyrics for the current track (null if none are available), reset
+    /// on every track change by the caller regardless of whether the fetch found anything.</summary>
+    public void SetLyrics(IReadOnlyList<LyricsLine>? lines)
+    {
+        _lyrics = lines is { Count: > 0 } ? lines : null;
+        _currentLyricIndex = -1;
+        UpdateLyricsVisibility();
+    }
+
+    /// <summary>Shows the current synced lyric line, karaoke-style, when available.</summary>
+    public void SetShowLyrics(bool show)
+    {
+        _showLyrics = show;
+        UpdateLyricsVisibility();
     }
 
     public void SetLayout(DisplayLayout layout)
@@ -354,7 +379,9 @@ public partial class NowPlayingView : UserControl
         double naturalWidth = TitleText.DesiredSize.Width;
         double overflow = naturalWidth - _titleClipWidth;
         LogTitleScrollDebug(
-            $"text=\"{TitleText.Text}\" clipWidth={_titleClipWidth:0.#} naturalWidth={naturalWidth:0.#} overflow={overflow:0.#}");
+            $"text=\"{TitleText.Text}\" clipWidth={_titleClipWidth:0.#} naturalWidth={naturalWidth:0.#} overflow={overflow:0.#} " +
+            $"TitleClip.ActualWidth={TitleClip.ActualWidth:0.#} TitleText.ActualWidth={TitleText.ActualWidth:0.#} " +
+            $"TitleText.HorizontalAlignment={TitleText.HorizontalAlignment}");
 
         if (overflow <= 0)
         {
@@ -406,5 +433,85 @@ public partial class NowPlayingView : UserControl
         {
             // Best-effort diagnostic logging; nothing actionable if this fails.
         }
+    }
+
+    /// <summary>Starts/stops the lyrics poll timer and shows/hides the current-line text based on
+    /// whether lyrics are actually available and relevant right now — mirrors how
+    /// <see cref="SetEqualizerPlaying"/> pauses/resumes in place rather than running unconditionally.</summary>
+    private void UpdateLyricsVisibility()
+    {
+        bool hasTrack = _lastInfo != null && !string.IsNullOrWhiteSpace(_lastInfo.Title);
+        bool lyricsActive = _showLyrics && _lyrics != null && hasTrack && !_isBlanked && _lastPosition != null;
+
+        if (lyricsActive)
+        {
+            CurrentLyricText.Visibility = Visibility.Visible;
+            StartLyricsTimer();
+        }
+        else
+        {
+            CurrentLyricText.Visibility = Visibility.Collapsed;
+            StopLyricsTimer();
+        }
+    }
+
+    private void StartLyricsTimer()
+    {
+        if (_lyricsTimer != null)
+        {
+            return;
+        }
+
+        _lyricsTimer = new DispatcherTimer(DispatcherPriority.Background) { Interval = LyricsPollInterval };
+        _lyricsTimer.Tick += (_, _) => UpdateCurrentLyricLine();
+        _lyricsTimer.Start();
+        UpdateCurrentLyricLine();
+    }
+
+    private void StopLyricsTimer()
+    {
+        if (_lyricsTimer == null)
+        {
+            return;
+        }
+
+        _lyricsTimer.Stop();
+        _lyricsTimer = null;
+        _currentLyricIndex = -1;
+    }
+
+    private void UpdateCurrentLyricLine()
+    {
+        if (_lyrics == null || _lastPosition is not { } anchor)
+        {
+            return;
+        }
+
+        // Interpolate off the last SMTC-reported anchor rather than polling the session directly
+        // here — position only needs to be "close enough" for line-granular sync, and this keeps
+        // the session/session-lifetime bookkeeping entirely in NowPlayingService.
+        var elapsed = _lastInfo?.IsPlaying == true
+            ? (DateTime.UtcNow - anchor.LastUpdatedTime) * anchor.PlaybackRate
+            : TimeSpan.Zero;
+        var position = anchor.Position + elapsed;
+
+        int index = -1;
+        for (int i = 0; i < _lyrics.Count; i++)
+        {
+            if (_lyrics[i].Time > position)
+            {
+                break;
+            }
+
+            index = i;
+        }
+
+        if (index == _currentLyricIndex)
+        {
+            return;
+        }
+
+        _currentLyricIndex = index;
+        CurrentLyricText.Text = index >= 0 ? _lyrics[index].Text : string.Empty;
     }
 }

@@ -21,4 +21,8 @@ public partial class PreviewWindow : Window
     public void SetLayout(DisplayLayout layout) => View.SetLayout(layout);
 
     public void SetShowClock(bool show) => View.SetShowClock(show);
+
+    public void SetLyrics(IReadOnlyList<LyricsLine>? lines) => View.SetLyrics(lines);
+
+    public void SetShowLyrics(bool show) => View.SetShowLyrics(show);
 }

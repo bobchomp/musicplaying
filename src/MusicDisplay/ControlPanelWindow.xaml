@@ -75,7 +75,18 @@
                       Content="Show time and date (Album left/right only)"
                       Checked="ShowClockCheckBox_Changed"
                       Unchecked="ShowClockCheckBox_Changed"
-                      Margin="0,0,0,20" />
+                      Margin="0,0,0,12" />
+
+            <CheckBox x:Name="ShowLyricsCheckBox"
+                      Content="Show synced lyrics"
+                      Checked="ShowLyricsCheckBox_Changed"
+                      Unchecked="ShowLyricsCheckBox_Changed"
+                      Margin="0,0,0,6" />
+            <TextBlock x:Name="LyricsStatusText"
+                       FontSize="11"
+                       Opacity="0.6"
+                       TextWrapping="Wrap"
+                       Margin="0,0,0,20" />
 
             <Button x:Name="PreviewButton"
                     Content="Preview"
