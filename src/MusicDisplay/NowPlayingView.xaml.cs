@@ -1,3 +1,4 @@
+using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
@@ -27,6 +28,10 @@ public partial class NowPlayingView : UserControl
 
     private static readonly Color IdleBackgroundColor = (Color)ColorConverter.ConvertFromString("#0B0B0D")!;
     private static readonly Random EqualizerRandom = new();
+    private static readonly string DebugLogPath = Path.Combine(
+        Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+        "MusicDisplay",
+        "title-scroll-debug.log");
 
     private NowPlayingInfo? _lastInfo;
     private bool _isBlanked;
@@ -346,6 +351,9 @@ public partial class NowPlayingView : UserControl
         TitleText.Measure(new System.Windows.Size(double.PositiveInfinity, double.PositiveInfinity));
         double naturalWidth = TitleText.DesiredSize.Width;
         double overflow = naturalWidth - _titleClipWidth;
+        LogTitleScrollDebug(
+            $"text=\"{TitleText.Text}\" clipWidth={_titleClipWidth:0.#} naturalWidth={naturalWidth:0.#} overflow={overflow:0.#}");
+
         if (overflow <= 0)
         {
             TitleScrollTransform.X = _titleAlignment switch
@@ -363,6 +371,7 @@ public partial class NowPlayingView : UserControl
         var scrollEndTime = holdTime + scrollTime;
         var holdEndTime = scrollEndTime + holdTime;
         var cycleEndTime = holdEndTime + scrollTime;
+        LogTitleScrollDebug($"scrolling distance={distance:0.#} scrollTime={scrollTime.TotalSeconds:0.##}s");
 
         var animation = new DoubleAnimationUsingKeyFrames { RepeatBehavior = RepeatBehavior.Forever };
         animation.KeyFrames.Add(new LinearDoubleKeyFrame(0, KeyTime.FromTimeSpan(holdTime)));
@@ -377,5 +386,23 @@ public partial class NowPlayingView : UserControl
         });
 
         TitleScrollTransform.BeginAnimation(TranslateTransform.XProperty, animation);
+    }
+
+    private static void LogTitleScrollDebug(string message)
+    {
+        try
+        {
+            var dir = Path.GetDirectoryName(DebugLogPath);
+            if (!string.IsNullOrEmpty(dir))
+            {
+                Directory.CreateDirectory(dir);
+            }
+
+            File.AppendAllText(DebugLogPath, $"{DateTime.Now:HH:mm:ss.fff} {message}{Environment.NewLine}");
+        }
+        catch (Exception)
+        {
+            // Best-effort diagnostic logging; nothing actionable if this fails.
+        }
     }
 }
