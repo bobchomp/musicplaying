@@ -51,6 +51,12 @@ public partial class NowPlayingView : UserControl
     private PlaybackPosition? _lastPosition;
     private DispatcherTimer? _lyricsTimer;
 
+    // Only used to tag debug log lines, since DisplayWindow/PreviewWindow/NdiOutputService each
+    // own a separate NowPlayingView instance and all three log to the same shared file — without
+    // this, two different instances evaluating the same track moments apart looks identical to
+    // one instance re-evaluating (resetting) itself.
+    private readonly string _instanceId = Guid.NewGuid().ToString("N")[..6];
+
     public NowPlayingView()
     {
         InitializeComponent();
@@ -377,9 +383,17 @@ public partial class NowPlayingView : UserControl
         // real width, cutting the scroll short before it ever reached the end of the title.
         TitleText.Measure(new System.Windows.Size(double.PositiveInfinity, double.PositiveInfinity));
         double naturalWidth = TitleText.DesiredSize.Width;
+
+        // Explicit Width, rather than leaving TitleText's render size to be inferred from
+        // DesiredSize + HorizontalAlignment=Left, removes any ambiguity about how a NoWrap
+        // TextBlock much wider than its container actually gets arranged — explicit sizing is
+        // the one thing that's been reliably unambiguous across every earlier attempt here
+        // (TitleClip.ActualWidth has always matched its explicit Width exactly in every log).
+        TitleText.Width = naturalWidth;
+
         double overflow = naturalWidth - _titleClipWidth;
         LogTitleScrollDebug(
-            $"text=\"{TitleText.Text}\" clipWidth={_titleClipWidth:0.#} naturalWidth={naturalWidth:0.#} overflow={overflow:0.#} " +
+            $"[{_instanceId}] text=\"{TitleText.Text}\" clipWidth={_titleClipWidth:0.#} naturalWidth={naturalWidth:0.#} overflow={overflow:0.#} " +
             $"TitleClip.ActualWidth={TitleClip.ActualWidth:0.#} TitleText.ActualWidth={TitleText.ActualWidth:0.#} " +
             $"TitleText.HorizontalAlignment={TitleText.HorizontalAlignment}");
 
@@ -400,7 +414,7 @@ public partial class NowPlayingView : UserControl
         var scrollEndTime = holdTime + scrollTime;
         var holdEndTime = scrollEndTime + holdTime;
         var cycleEndTime = holdEndTime + scrollTime;
-        LogTitleScrollDebug($"scrolling distance={distance:0.#} scrollTime={scrollTime.TotalSeconds:0.##}s");
+        LogTitleScrollDebug($"[{_instanceId}] scrolling distance={distance:0.#} scrollTime={scrollTime.TotalSeconds:0.##}s");
 
         var animation = new DoubleAnimationUsingKeyFrames { RepeatBehavior = RepeatBehavior.Forever };
         animation.KeyFrames.Add(new LinearDoubleKeyFrame(0, KeyTime.FromTimeSpan(holdTime)));
