@@ -353,8 +353,8 @@ public partial class NowPlayingView : UserControl
 
     private void StopTitleScroll()
     {
-        TitleScrollTransform.BeginAnimation(TranslateTransform.XProperty, null);
-        TitleScrollTransform.X = 0;
+        TitleText.BeginAnimation(Canvas.LeftProperty, null);
+        Canvas.SetLeft(TitleText, 0);
     }
 
     /// <summary>Measures the title text against the current per-layout clip width (set in
@@ -364,12 +364,6 @@ public partial class NowPlayingView : UserControl
     private void EvaluateTitleScroll()
     {
         StopTitleScroll();
-
-        // Always left-aligned — the actual position (centered/left/right per layout when the
-        // title fits, or the scroll offsets when it doesn't) is instead computed below and
-        // applied entirely through TitleScrollTransform, rather than relying on WPF's own
-        // alignment/arrange behavior for an element wider than its container.
-        TitleText.HorizontalAlignment = HorizontalAlignment.Left;
 
         if (string.IsNullOrEmpty(TitleText.Text))
         {
@@ -383,28 +377,21 @@ public partial class NowPlayingView : UserControl
         // real width, cutting the scroll short before it ever reached the end of the title.
         TitleText.Measure(new System.Windows.Size(double.PositiveInfinity, double.PositiveInfinity));
         double naturalWidth = TitleText.DesiredSize.Width;
-
-        // Explicit Width, rather than leaving TitleText's render size to be inferred from
-        // DesiredSize + HorizontalAlignment=Left, removes any ambiguity about how a NoWrap
-        // TextBlock much wider than its container actually gets arranged — explicit sizing is
-        // the one thing that's been reliably unambiguous across every earlier attempt here
-        // (TitleClip.ActualWidth has always matched its explicit Width exactly in every log).
         TitleText.Width = naturalWidth;
 
         double overflow = naturalWidth - _titleClipWidth;
         LogTitleScrollDebug(
             $"[{_instanceId}] text=\"{TitleText.Text}\" clipWidth={_titleClipWidth:0.#} naturalWidth={naturalWidth:0.#} overflow={overflow:0.#} " +
-            $"TitleClip.ActualWidth={TitleClip.ActualWidth:0.#} TitleText.ActualWidth={TitleText.ActualWidth:0.#} " +
-            $"TitleText.HorizontalAlignment={TitleText.HorizontalAlignment}");
+            $"TitleClip.ActualWidth={TitleClip.ActualWidth:0.#} TitleText.ActualWidth={TitleText.ActualWidth:0.#}");
 
         if (overflow <= 0)
         {
-            TitleScrollTransform.X = _titleAlignment switch
+            Canvas.SetLeft(TitleText, _titleAlignment switch
             {
                 TextAlignment.Center => (_titleClipWidth - naturalWidth) / 2,
                 TextAlignment.Right => _titleClipWidth - naturalWidth,
                 _ => 0,
-            };
+            });
             return;
         }
 
@@ -428,7 +415,7 @@ public partial class NowPlayingView : UserControl
             EasingFunction = new SineEase { EasingMode = EasingMode.EaseInOut },
         });
 
-        TitleScrollTransform.BeginAnimation(TranslateTransform.XProperty, animation);
+        TitleText.BeginAnimation(Canvas.LeftProperty, animation);
     }
 
     private static void LogTitleScrollDebug(string message)

@@ -32,27 +32,28 @@
                     <!-- Fixed-width clip so a long title scrolls in place on one line instead of
                          wrapping and pushing the artist text (and everything below it) further
                          down / off screen. TitleClip.Width is set per-layout in code-behind to
-                         match the old MaxWidth/ContentPanel-width caps. -->
-                    <!-- TEMP DEBUG: TitleClip's red background marks the clip boundary itself;
+                         match the old MaxWidth/ContentPanel-width caps. A Canvas positions
+                         TitleText via the Canvas.Left attached property (animated directly,
+                         no RenderTransform) rather than a Border — Canvas.Left is an explicit
+                         pixel offset with no alignment/arrange ambiguity for an oversized child,
+                         unlike everything tried here before.
+                         TEMP DEBUG: TitleClip's red background marks the clip boundary itself;
                          TitleText's blue background marks the text element's own bounds, which
                          should extend past the red box (and get visually cut at its edge) when
                          the title overflows. Remove once the scroll bug is diagnosed. -->
-                    <Border x:Name="TitleClip"
+                    <Canvas x:Name="TitleClip"
+                            Height="100"
                             ClipToBounds="True"
                             Background="#4DFF0000"
                             Margin="0,52,0,10">
                         <TextBlock x:Name="TitleText"
+                                   Canvas.Left="0"
                                    FontFamily="pack://application:,,,/Resources/Fonts/#Poppins SemiBold"
                                    FontSize="76"
                                    Foreground="White"
                                    Background="#4D0000FF"
-                                   TextAlignment="Center"
-                                   TextWrapping="NoWrap">
-                            <TextBlock.RenderTransform>
-                                <TranslateTransform x:Name="TitleScrollTransform" />
-                            </TextBlock.RenderTransform>
-                        </TextBlock>
-                    </Border>
+                                   TextWrapping="NoWrap" />
+                    </Canvas>
 
                     <TextBlock x:Name="ArtistText"
                                FontFamily="pack://application:,,,/Resources/Fonts/#Poppins"
