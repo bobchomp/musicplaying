@@ -383,6 +383,14 @@ public partial class NowPlayingView : UserControl
         // real width, cutting the scroll short before it ever reached the end of the title.
         TitleText.Measure(new System.Windows.Size(double.PositiveInfinity, double.PositiveInfinity));
         double naturalWidth = TitleText.DesiredSize.Width;
+
+        // Explicit Width, rather than leaving TitleText's render size to be inferred from
+        // DesiredSize + HorizontalAlignment=Left, removes any ambiguity about how a NoWrap
+        // TextBlock much wider than its container actually gets arranged — explicit sizing is
+        // the one thing that's been reliably unambiguous across every earlier attempt here
+        // (TitleClip.ActualWidth has always matched its explicit Width exactly in every log).
+        TitleText.Width = naturalWidth;
+
         double overflow = naturalWidth - _titleClipWidth;
         LogTitleScrollDebug(
             $"[{_instanceId}] text=\"{TitleText.Text}\" clipWidth={_titleClipWidth:0.#} naturalWidth={naturalWidth:0.#} overflow={overflow:0.#} " +
