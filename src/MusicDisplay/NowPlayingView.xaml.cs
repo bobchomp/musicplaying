@@ -375,9 +375,16 @@ public partial class NowPlayingView : UserControl
         // Typeface from FontFamily/FontWeight risked not matching "Poppins SemiBold", which is a
         // distinct embedded font family rather than a font-weight variant, and undershot the
         // real width, cutting the scroll short before it ever reached the end of the title.
+        //
+        // Width is explicitly reset to NaN (unset) first: FrameworkElement.Measure clamps its
+        // result to any already-set explicit Width regardless of the availableSize passed in, so
+        // a leftover Width from a *previous*, differently-sized title would otherwise cap this
+        // measurement — which is exactly what was capping the scroll distance far too short.
+        // With a Canvas as the parent (which arranges children at their own natural DesiredSize,
+        // not stretched to anything), an explicit Width isn't needed here at all any more.
+        TitleText.Width = double.NaN;
         TitleText.Measure(new System.Windows.Size(double.PositiveInfinity, double.PositiveInfinity));
         double naturalWidth = TitleText.DesiredSize.Width;
-        TitleText.Width = naturalWidth;
 
         double overflow = naturalWidth - _titleClipWidth;
         LogTitleScrollDebug(
