@@ -75,4 +75,6 @@ public partial class DisplayWindow : Window
     public void SetLyrics(IReadOnlyList<LyricsLine>? lines) => View.SetLyrics(lines);
 
     public void SetShowLyrics(bool show) => View.SetShowLyrics(show);
+
+    public void UpdatePosition(PlaybackPosition? position) => View.UpdatePosition(position);
 }

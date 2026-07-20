@@ -96,6 +96,19 @@ public partial class NowPlayingView : UserControl
         UpdateLyricsVisibility();
     }
 
+    /// <summary>Overrides the cached position anchor with a freshly-queried one and, if the
+    /// lyrics timer is already running, immediately re-syncs to it — used when lyrics are
+    /// switched on, so the current line lands correctly right away instead of waiting for the
+    /// next SMTC-driven update (which some sources delay or batch).</summary>
+    public void UpdatePosition(PlaybackPosition? position)
+    {
+        _lastPosition = position;
+        if (_lyricsTimer != null)
+        {
+            UpdateCurrentLyricLine();
+        }
+    }
+
     /// <summary>Shows the current synced lyric line, karaoke-style, when available.</summary>
     public void SetShowLyrics(bool show)
     {
