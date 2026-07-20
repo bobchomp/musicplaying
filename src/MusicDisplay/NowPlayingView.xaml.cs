@@ -23,7 +23,7 @@ public partial class NowPlayingView : UserControl
     private const double EdgeLayoutInset = 160;
     private const double CenteredTitleWidth = 1500;
     private const double TitleScrollEdgePadding = 40;
-    private const double TitleScrollPixelsPerSecond = 200;
+    private const double TitleScrollPixelsPerSecond = 110;
     private static readonly TimeSpan LyricsPollInterval = TimeSpan.FromMilliseconds(250);
     private static readonly Duration LayoutFadeOutDuration = new(TimeSpan.FromMilliseconds(180));
     private static readonly Duration LayoutFadeInDuration = new(TimeSpan.FromMilliseconds(220));
