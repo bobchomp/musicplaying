@@ -15,6 +15,7 @@ public partial class ControlPanelWindow : Window
     private readonly NowPlayingService _nowPlayingService = new();
     private readonly DisplayWindow _displayWindow = new();
     private readonly NdiOutputService _ndiOutputService = new();
+    private readonly LyricsService _lyricsService = new();
 
     private WinForms.NotifyIcon? _trayIcon;
     private WinForms.ToolStripMenuItem? _trayToggleMenuItem;
@@ -27,6 +28,9 @@ public partial class ControlPanelWindow : Window
     private bool _suppressNetworkFeedHandling;
     private bool _isExiting;
     private NowPlayingInfo? _lastNowPlayingInfo;
+    private (string Title, string Artist)? _lyricsFetchedFor;
+    private bool? _lyricsFound;
+    private IReadOnlyList<LyricsLine>? _lastLyrics;
 
     public ControlPanelWindow(bool startMinimized)
     {
@@ -40,6 +44,10 @@ public partial class ControlPanelWindow : Window
 
         ShowClockCheckBox.IsChecked = _settings.ShowClock;
         _displayWindow.SetShowClock(_settings.ShowClock);
+
+        ShowLyricsCheckBox.IsChecked = _settings.ShowLyrics;
+        _displayWindow.SetShowLyrics(_settings.ShowLyrics);
+        RefreshLyricsStatusText();
 
         InitializeVolumeControls();
         InitializeNetworkFeed();
@@ -214,7 +222,9 @@ public partial class ControlPanelWindow : Window
             _previewWindow.SetLayout(_settings.Layout);
             _previewWindow.SetBlanked(_isBlanked);
             _previewWindow.SetShowClock(_settings.ShowClock);
+            _previewWindow.SetShowLyrics(_settings.ShowLyrics);
             _previewWindow.UpdateNowPlaying(_lastNowPlayingInfo);
+            _previewWindow.SetLyrics(_lastLyrics);
             _previewWindow.Show();
         }
         else
@@ -423,6 +433,17 @@ public partial class ControlPanelWindow : Window
         _ndiOutputService.SetShowClock(show);
     }
 
+    private void ShowLyricsCheckBox_Changed(object sender, RoutedEventArgs e)
+    {
+        bool show = ShowLyricsCheckBox.IsChecked == true;
+        _settings.ShowLyrics = show;
+        SettingsService.Save(_settings);
+        _displayWindow.SetShowLyrics(show);
+        _previewWindow?.SetShowLyrics(show);
+        _ndiOutputService.SetShowLyrics(show);
+        RefreshLyricsStatusText();
+    }
+
     private void ExitMenuItem_Click(object sender, RoutedEventArgs e) => ExitApplication();
 
     private void OpenSettingsFolderMenuItem_Click(object sender, RoutedEventArgs e) => SettingsService.OpenSettingsFolder();
@@ -443,7 +464,76 @@ public partial class ControlPanelWindow : Window
                 : "No music detected";
 
             PlayPauseButton.Content = info?.IsPlaying == true ? "Pause" : "Play";
+
+            UpdateLyricsForTrack(info);
         });
+    }
+
+    private void UpdateLyricsForTrack(NowPlayingInfo? info)
+    {
+        bool hasTrack = info != null && !string.IsNullOrWhiteSpace(info.Title);
+        (string Title, string Artist)? key = hasTrack ? (info!.Title, info.Artist) : null;
+
+        if (key == _lyricsFetchedFor)
+        {
+            return;
+        }
+
+        _lyricsFetchedFor = key;
+        _lyricsFound = null;
+        ApplyLyrics(null);
+        RefreshLyricsStatusText();
+
+        if (key.HasValue)
+        {
+            _ = FetchLyricsAsync(info!.Title, info.Artist, info.Duration, key.Value);
+        }
+    }
+
+    private async Task FetchLyricsAsync(string title, string artist, TimeSpan? duration, (string Title, string Artist) key)
+    {
+        var lyrics = await _lyricsService.FetchAsync(title, artist, duration);
+
+        Dispatcher.Invoke(() =>
+        {
+            // The track may have changed again while this fetch was in flight; only apply the
+            // result if it's still the track we were fetching for.
+            if (_lyricsFetchedFor != key)
+            {
+                return;
+            }
+
+            _lyricsFound = lyrics != null;
+            ApplyLyrics(lyrics);
+            RefreshLyricsStatusText();
+        });
+    }
+
+    private void ApplyLyrics(IReadOnlyList<LyricsLine>? lyrics)
+    {
+        _lastLyrics = lyrics;
+        _displayWindow.SetLyrics(lyrics);
+        _previewWindow?.SetLyrics(lyrics);
+        _ndiOutputService.SetLyrics(lyrics);
+    }
+
+    private void RefreshLyricsStatusText()
+    {
+        const string idleText = "Shows the current line of synced lyrics for the playing track, "
+            + "when available (fetched from lrclib.net — requires internet).";
+
+        if (!_settings.ShowLyrics || _lyricsFetchedFor == null)
+        {
+            LyricsStatusText.Text = idleText;
+            return;
+        }
+
+        LyricsStatusText.Text = _lyricsFound switch
+        {
+            true => "Lyrics found for this track.",
+            false => "No synced lyrics found for this track.",
+            null => "Looking for lyrics…",
+        };
     }
 
     private void ExitApplication()

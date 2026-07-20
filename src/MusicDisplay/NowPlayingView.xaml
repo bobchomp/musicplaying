@@ -188,6 +188,20 @@
                                    MaxWidth="1500" />
                     </StackPanel>
                 </StackPanel>
+
+                <!-- Synced lyrics: one line at a time, same position in every layout since it
+                     spans the full canvas width independent of where the art/side panel sit. -->
+                <TextBlock x:Name="CurrentLyricText"
+                           FontFamily="pack://application:,,,/Resources/Fonts/#Poppins SemiBold"
+                           FontSize="48"
+                           Foreground="White"
+                           TextAlignment="Center"
+                           TextWrapping="Wrap"
+                           MaxWidth="1700"
+                           HorizontalAlignment="Center"
+                           VerticalAlignment="Bottom"
+                           Margin="0,0,0,60"
+                           Visibility="Collapsed" />
             </Grid>
         </Viewbox>
     </Grid>

@@ -122,11 +122,32 @@ public sealed class NowPlayingService : IDisposable
                 thumbnail = await LoadThumbnailAsync(props.Thumbnail);
             }
 
+            // Not every source app supports timeline properties (position/duration), so this is
+            // best-effort — lyrics sync is simply unavailable if it throws or comes back empty.
+            TimeSpan? duration = null;
+            PlaybackPosition? position = null;
+            try
+            {
+                var timeline = session.GetTimelineProperties();
+                if (timeline.EndTime > timeline.StartTime)
+                {
+                    duration = timeline.EndTime - timeline.StartTime;
+                }
+
+                position = new PlaybackPosition(timeline.Position, timeline.LastUpdatedTime.UtcDateTime, playback?.PlaybackRate ?? 1.0);
+            }
+            catch (Exception)
+            {
+                // Best-effort; lyrics sync just won't be available for this session.
+            }
+
             var info = new NowPlayingInfo(
                 props?.Title ?? string.Empty,
                 props?.Artist ?? string.Empty,
                 thumbnail,
-                isPlaying);
+                isPlaying,
+                duration,
+                position);
 
             NowPlayingChanged?.Invoke(info);
         }
