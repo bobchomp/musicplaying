@@ -354,7 +354,9 @@ public partial class NowPlayingView : UserControl
         double naturalWidth = TitleText.DesiredSize.Width;
         double overflow = naturalWidth - _titleClipWidth;
         LogTitleScrollDebug(
-            $"text=\"{TitleText.Text}\" clipWidth={_titleClipWidth:0.#} naturalWidth={naturalWidth:0.#} overflow={overflow:0.#}");
+            $"text=\"{TitleText.Text}\" clipWidth={_titleClipWidth:0.#} naturalWidth={naturalWidth:0.#} overflow={overflow:0.#} " +
+            $"TitleClip.ActualWidth={TitleClip.ActualWidth:0.#} TitleText.ActualWidth={TitleText.ActualWidth:0.#} " +
+            $"TitleText.HorizontalAlignment={TitleText.HorizontalAlignment}");
 
         if (overflow <= 0)
         {

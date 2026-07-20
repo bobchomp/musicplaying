@@ -33,13 +33,19 @@
                          wrapping and pushing the artist text (and everything below it) further
                          down / off screen. TitleClip.Width is set per-layout in code-behind to
                          match the old MaxWidth/ContentPanel-width caps. -->
+                    <!-- TEMP DEBUG: TitleClip's red background marks the clip boundary itself;
+                         TitleText's blue background marks the text element's own bounds, which
+                         should extend past the red box (and get visually cut at its edge) when
+                         the title overflows. Remove once the scroll bug is diagnosed. -->
                     <Border x:Name="TitleClip"
                             ClipToBounds="True"
+                            Background="#4DFF0000"
                             Margin="0,52,0,10">
                         <TextBlock x:Name="TitleText"
                                    FontFamily="pack://application:,,,/Resources/Fonts/#Poppins SemiBold"
                                    FontSize="76"
                                    Foreground="White"
+                                   Background="#4D0000FF"
                                    TextAlignment="Center"
                                    TextWrapping="NoWrap">
                             <TextBlock.RenderTransform>
