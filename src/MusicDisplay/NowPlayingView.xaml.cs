@@ -51,6 +51,12 @@ public partial class NowPlayingView : UserControl
     private PlaybackPosition? _lastPosition;
     private DispatcherTimer? _lyricsTimer;
 
+    // Only used to tag debug log lines, since DisplayWindow/PreviewWindow/NdiOutputService each
+    // own a separate NowPlayingView instance and all three log to the same shared file — without
+    // this, two different instances evaluating the same track moments apart looks identical to
+    // one instance re-evaluating (resetting) itself.
+    private readonly string _instanceId = Guid.NewGuid().ToString("N")[..6];
+
     public NowPlayingView()
     {
         InitializeComponent();
@@ -379,7 +385,7 @@ public partial class NowPlayingView : UserControl
         double naturalWidth = TitleText.DesiredSize.Width;
         double overflow = naturalWidth - _titleClipWidth;
         LogTitleScrollDebug(
-            $"text=\"{TitleText.Text}\" clipWidth={_titleClipWidth:0.#} naturalWidth={naturalWidth:0.#} overflow={overflow:0.#} " +
+            $"[{_instanceId}] text=\"{TitleText.Text}\" clipWidth={_titleClipWidth:0.#} naturalWidth={naturalWidth:0.#} overflow={overflow:0.#} " +
             $"TitleClip.ActualWidth={TitleClip.ActualWidth:0.#} TitleText.ActualWidth={TitleText.ActualWidth:0.#} " +
             $"TitleText.HorizontalAlignment={TitleText.HorizontalAlignment}");
 
@@ -400,7 +406,7 @@ public partial class NowPlayingView : UserControl
         var scrollEndTime = holdTime + scrollTime;
         var holdEndTime = scrollEndTime + holdTime;
         var cycleEndTime = holdEndTime + scrollTime;
-        LogTitleScrollDebug($"scrolling distance={distance:0.#} scrollTime={scrollTime.TotalSeconds:0.##}s");
+        LogTitleScrollDebug($"[{_instanceId}] scrolling distance={distance:0.#} scrollTime={scrollTime.TotalSeconds:0.##}s");
 
         var animation = new DoubleAnimationUsingKeyFrames { RepeatBehavior = RepeatBehavior.Forever };
         animation.KeyFrames.Add(new LinearDoubleKeyFrame(0, KeyTime.FromTimeSpan(holdTime)));
