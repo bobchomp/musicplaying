@@ -23,6 +23,7 @@ public partial class NowPlayingView : UserControl
     private const double EdgeLayoutInset = 160;
     private const double CenteredTitleWidth = 1500;
     private const double TitleScrollEdgePadding = 40;
+    private const double TitleScrollPixelsPerSecond = 200;
     private static readonly Duration LayoutFadeOutDuration = new(TimeSpan.FromMilliseconds(180));
     private static readonly Duration LayoutFadeInDuration = new(TimeSpan.FromMilliseconds(220));
 
@@ -184,10 +185,11 @@ public partial class NowPlayingView : UserControl
 
         if (_isBlanked)
         {
+            // Deliberately not touching the title scroll here: ContentPanel is hidden either way,
+            // so whatever's mid-flight simply isn't visible — no need to stop or reset it, and
+            // leaving it running means it doesn't lose its place while blanked.
             ContentPanel.Visibility = Visibility.Collapsed;
             IdlePanel.Visibility = Visibility.Collapsed;
-            StopTitleScroll();
-            _titleScrollAppliedFor = null;
             AnimateBackgroundTo(IdleBackgroundColor);
             return;
         }
@@ -200,8 +202,6 @@ public partial class NowPlayingView : UserControl
             // Centered has no side panel to show a clock in, so give it one here instead — only
             // while idle, since once art/title are on screen there's no room for it.
             IdleClockPanel.Visibility = _showClock && !onEdgeLayout ? Visibility.Visible : Visibility.Collapsed;
-            StopTitleScroll();
-            _titleScrollAppliedFor = null;
             AnimateBackgroundTo(IdleBackgroundColor);
             return;
         }
@@ -213,9 +213,11 @@ public partial class NowPlayingView : UserControl
         ContentPanel.Visibility = Visibility.Visible;
 
         // NowPlayingChanged (and so Render) can fire repeatedly for the same track — many media
-        // sources raise SMTC's PlaybackInfoChanged well beyond actual play/pause toggles. Only
-        // re-evaluating when the title text itself changes stops that from continually
-        // restarting the scroll animation before it ever completes a lap.
+        // sources raise SMTC's PlaybackInfoChanged well beyond actual play/pause toggles, and
+        // NowPlayingService can also report a brief null/no-session blip for a track that's still
+        // really playing. Only re-evaluating when the title text actually changes (and never
+        // resetting that above, on the merely-hidden paths) stops any of that from restarting the
+        // scroll animation before it ever completes a lap.
         if (_titleScrollAppliedFor != info.Title)
         {
             _titleScrollAppliedFor = info.Title;
@@ -367,7 +369,7 @@ public partial class NowPlayingView : UserControl
 
         double distance = overflow + TitleScrollEdgePadding;
         var holdTime = TimeSpan.FromSeconds(1.2);
-        var scrollTime = TimeSpan.FromSeconds(Math.Max(3, distance / 60.0));
+        var scrollTime = TimeSpan.FromSeconds(Math.Max(2, distance / TitleScrollPixelsPerSecond));
         var scrollEndTime = holdTime + scrollTime;
         var holdEndTime = scrollEndTime + holdTime;
         var cycleEndTime = holdEndTime + scrollTime;
