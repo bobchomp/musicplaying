@@ -32,7 +32,7 @@ public partial class NowPlayingView : UserControl
     private static readonly TimeSpan LyricsAdvanceDelay = TimeSpan.FromMilliseconds(350);
     private static readonly Duration LayoutFadeOutDuration = new(TimeSpan.FromMilliseconds(180));
     private static readonly Duration LayoutFadeInDuration = new(TimeSpan.FromMilliseconds(220));
-    private const double EdgeLyricLineHeight = 100;
+    private const double EdgeLyricLineHeight = 90;
     private static readonly Duration EdgeLyricsSlideDuration = new(TimeSpan.FromMilliseconds(380));
 
     private static readonly Color IdleBackgroundColor = (Color)ColorConverter.ConvertFromString("#0B0B0D")!;
@@ -486,6 +486,8 @@ public partial class NowPlayingView : UserControl
         else
         {
             StopLyricsTimer();
+            CurrentLyricText.Text = string.Empty;
+            SetEdgeLyricsWindow(-1);
         }
     }
 
