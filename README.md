@@ -130,6 +130,12 @@ community lyrics database, over the internet at runtime — no lyrics are bundle
 this repo. As noted above, displaying lyrics publicly is your responsibility to license (e.g. via
 CCLI), not something this app manages.
 
+## License
+
+MIT — see [LICENSE](LICENSE). This covers this repo's own source code; the third-party
+components listed above (NDI Runtime, LRCLIB, the bundled Poppins font) remain under their own
+licenses.
+
 ## Project layout
 
 ```
