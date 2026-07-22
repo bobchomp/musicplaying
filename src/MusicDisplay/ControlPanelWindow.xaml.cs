@@ -467,6 +467,14 @@ public partial class ControlPanelWindow : Window
         Dispatcher.Invoke(() =>
         {
             _lastNowPlayingInfo = info;
+
+            // Must run before UpdateNowPlaying below: on a genuine track change this clears the
+            // previous track's lyrics synchronously. Doing it first means NowPlayingView never
+            // evaluates the *new* track's playback position against the *old* track's lyrics —
+            // which otherwise briefly resolves to a real (wrong) line instead of no line, since
+            // both a lyrics list and a position are present at that moment, just mismatched.
+            UpdateLyricsForTrack(info);
+
             _displayWindow.UpdateNowPlaying(info);
             _previewWindow?.UpdateNowPlaying(info);
             _ndiOutputService.UpdateNowPlaying(info);
@@ -476,8 +484,6 @@ public partial class ControlPanelWindow : Window
                 : "No music detected";
 
             PlayPauseButton.Content = info?.IsPlaying == true ? "Pause" : "Play";
-
-            UpdateLyricsForTrack(info);
         });
     }
 
