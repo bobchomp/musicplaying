@@ -28,9 +28,9 @@ public partial class NowPlayingView : UserControl
 
     // A small hold past each line's own LRC timestamp before switching to it — enough to not
     // feel like it's anticipating the line before it's sung, but small enough that it doesn't
-    // read as lagging behind the vocal, which 350ms turned out to (real-world feedback: it was
-    // switching noticeably after the line had already started, not before).
-    private static readonly TimeSpan LyricsAdvanceDelay = TimeSpan.FromMilliseconds(100);
+    // read as lagging behind the vocal. Cut down twice now on real-world feedback (350ms, then
+    // 100ms), both times because it was still switching after the line had already started.
+    private static readonly TimeSpan LyricsAdvanceDelay = TimeSpan.FromMilliseconds(30);
     private static readonly Duration LayoutFadeOutDuration = new(TimeSpan.FromMilliseconds(180));
     private static readonly Duration LayoutFadeInDuration = new(TimeSpan.FromMilliseconds(220));
     private const double EdgeLyricLineHeight = 90;
