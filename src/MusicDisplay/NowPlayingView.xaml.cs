@@ -32,6 +32,8 @@ public partial class NowPlayingView : UserControl
     private static readonly TimeSpan LyricsAdvanceDelay = TimeSpan.FromMilliseconds(350);
     private static readonly Duration LayoutFadeOutDuration = new(TimeSpan.FromMilliseconds(180));
     private static readonly Duration LayoutFadeInDuration = new(TimeSpan.FromMilliseconds(220));
+    private const double EdgeLyricLineHeight = 100;
+    private static readonly Duration EdgeLyricsSlideDuration = new(TimeSpan.FromMilliseconds(380));
 
     private static readonly Color IdleBackgroundColor = (Color)ColorConverter.ConvertFromString("#0B0B0D")!;
     private static readonly Random EqualizerRandom = new();
@@ -131,6 +133,7 @@ public partial class NowPlayingView : UserControl
             _layout = layout;
             ApplyLayout(layout);
             Render();
+            UpdateLyricsVisibility();
             return;
         }
 
@@ -150,6 +153,7 @@ public partial class NowPlayingView : UserControl
             _layout = layout;
             ApplyLayout(layout);
             Render();
+            UpdateLyricsVisibility();
 
             var fadeIn = new DoubleAnimation
             {
@@ -463,20 +467,24 @@ public partial class NowPlayingView : UserControl
 
     /// <summary>Starts/stops the lyrics poll timer and shows/hides the current-line text based on
     /// whether lyrics are actually available and relevant right now — mirrors how
-    /// <see cref="SetEqualizerPlaying"/> pauses/resumes in place rather than running unconditionally.</summary>
+    /// <see cref="SetEqualizerPlaying"/> pauses/resumes in place rather than running unconditionally.
+    /// Centered layout shows the single bottom-anchored line; Album left/right show the 3-line edge
+    /// ticker instead, since only they have the side space for it.</summary>
     private void UpdateLyricsVisibility()
     {
         bool hasTrack = _lastInfo != null && !string.IsNullOrWhiteSpace(_lastInfo.Title);
         bool lyricsActive = _showLyrics && _lyrics != null && hasTrack && !_isBlanked && _lastPosition != null;
+        bool onEdgeLayout = _layout != DisplayLayout.Centered;
+
+        CurrentLyricText.Visibility = lyricsActive && !onEdgeLayout ? Visibility.Visible : Visibility.Collapsed;
+        EdgeLyricsPanel.Visibility = lyricsActive && onEdgeLayout ? Visibility.Visible : Visibility.Collapsed;
 
         if (lyricsActive)
         {
-            CurrentLyricText.Visibility = Visibility.Visible;
             StartLyricsTimer();
         }
         else
         {
-            CurrentLyricText.Visibility = Visibility.Collapsed;
             StopLyricsTimer();
         }
     }
@@ -538,7 +546,52 @@ public partial class NowPlayingView : UserControl
             return;
         }
 
+        int previousIndex = _currentLyricIndex;
         _currentLyricIndex = index;
         CurrentLyricText.Text = index >= 0 ? _lyrics[index].Text : string.Empty;
+        AdvanceEdgeLyrics(previousIndex, index);
+    }
+
+    private string EdgeLyricLineOrEmpty(int index) =>
+        _lyrics != null && index >= 0 && index < _lyrics.Count ? _lyrics[index].Text : string.Empty;
+
+    /// <summary>Fills all 5 ticker slots — the 3 visible ones plus the extra line just outside the
+    /// clip on each side — directly from <paramref name="index"/>, with no animation. Used for the
+    /// initial line and for any jump that isn't a plain one-line step (seeking, rewinding, or
+    /// lyrics just having turned on), where an animated slide wouldn't make sense anyway since the
+    /// slots weren't pre-loaded with the right neighbouring text for it.</summary>
+    private void SetEdgeLyricsWindow(int index)
+    {
+        EdgeLyricSlot0.Text = EdgeLyricLineOrEmpty(index - 2);
+        EdgeLyricSlot1.Text = EdgeLyricLineOrEmpty(index - 1);
+        EdgeLyricSlot2.Text = EdgeLyricLineOrEmpty(index);
+        EdgeLyricSlot3.Text = EdgeLyricLineOrEmpty(index + 1);
+        EdgeLyricSlot4.Text = EdgeLyricLineOrEmpty(index + 2);
+        EdgeLyricsTransform.BeginAnimation(TranslateTransform.YProperty, null);
+        EdgeLyricsTransform.Y = -EdgeLyricLineHeight;
+    }
+
+    /// <summary>Slides the edge lyrics ticker up by one line when the line advances normally, so
+    /// the slot that already held the upcoming line's text (loaded ahead of time by the previous
+    /// call) scrolls into view instead of just popping to new text. Anything other than a plain
+    /// one-line forward step just snaps straight to the new window instead.</summary>
+    private void AdvanceEdgeLyrics(int previousIndex, int newIndex)
+    {
+        bool simpleForwardStep = previousIndex >= 0 && newIndex == previousIndex + 1;
+        if (!simpleForwardStep)
+        {
+            SetEdgeLyricsWindow(newIndex);
+            return;
+        }
+
+        var animation = new DoubleAnimation
+        {
+            From = -EdgeLyricLineHeight,
+            To = -2 * EdgeLyricLineHeight,
+            Duration = EdgeLyricsSlideDuration,
+            EasingFunction = new QuadraticEase { EasingMode = EasingMode.EaseInOut },
+        };
+        animation.Completed += (_, _) => SetEdgeLyricsWindow(newIndex);
+        EdgeLyricsTransform.BeginAnimation(TranslateTransform.YProperty, animation);
     }
 }

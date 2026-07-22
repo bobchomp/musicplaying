@@ -105,6 +105,81 @@
                          end flush with the album art's bottom edge, not the bottom of this
                          whole spacer. -->
                     <Grid Height="612">
+                        <!-- Synced lyrics for the Album left/right layouts: a 3-line ticker (just-sung
+                             line on top, current line in the middle, next line on the bottom) filling
+                             the space above the equalizer that's otherwise empty. Fixed to the same
+                             300px this Grid leaves free above the equalizer's 260px height + 52px
+                             bottom margin, so it never overlaps it. Five slots (not three) are kept so
+                             the outer two can hold the lines just outside the visible window, clipped
+                             out of view — advancing a line slides the whole stack up by one slot,
+                             revealing the fifth slot's line at the bottom instead of popping straight
+                             to new text, then the window is silently re-centered afterwards. Centered
+                             layout has no side space for this and keeps the single-line CurrentLyricText
+                             at the bottom of the screen instead. -->
+                        <Grid x:Name="EdgeLyricsPanel"
+                              Height="300"
+                              VerticalAlignment="Top"
+                              HorizontalAlignment="Center"
+                              ClipToBounds="True"
+                              Visibility="Collapsed">
+                            <StackPanel x:Name="EdgeLyricsStack" HorizontalAlignment="Center">
+                                <StackPanel.RenderTransform>
+                                    <TranslateTransform x:Name="EdgeLyricsTransform" Y="-100" />
+                                </StackPanel.RenderTransform>
+
+                                <TextBlock x:Name="EdgeLyricSlot0"
+                                           Width="640"
+                                           Height="100"
+                                           FontFamily="pack://application:,,,/Resources/Fonts/#Poppins"
+                                           FontSize="26"
+                                           Foreground="#80FFFFFF"
+                                           TextAlignment="Center"
+                                           VerticalAlignment="Center"
+                                           TextWrapping="NoWrap"
+                                           TextTrimming="CharacterEllipsis" />
+                                <TextBlock x:Name="EdgeLyricSlot1"
+                                           Width="640"
+                                           Height="100"
+                                           FontFamily="pack://application:,,,/Resources/Fonts/#Poppins"
+                                           FontSize="26"
+                                           Foreground="#80FFFFFF"
+                                           TextAlignment="Center"
+                                           VerticalAlignment="Center"
+                                           TextWrapping="NoWrap"
+                                           TextTrimming="CharacterEllipsis" />
+                                <TextBlock x:Name="EdgeLyricSlot2"
+                                           Width="640"
+                                           Height="100"
+                                           FontFamily="pack://application:,,,/Resources/Fonts/#Poppins SemiBold"
+                                           FontSize="38"
+                                           Foreground="White"
+                                           TextAlignment="Center"
+                                           VerticalAlignment="Center"
+                                           TextWrapping="NoWrap"
+                                           TextTrimming="CharacterEllipsis" />
+                                <TextBlock x:Name="EdgeLyricSlot3"
+                                           Width="640"
+                                           Height="100"
+                                           FontFamily="pack://application:,,,/Resources/Fonts/#Poppins"
+                                           FontSize="26"
+                                           Foreground="#80FFFFFF"
+                                           TextAlignment="Center"
+                                           VerticalAlignment="Center"
+                                           TextWrapping="NoWrap"
+                                           TextTrimming="CharacterEllipsis" />
+                                <TextBlock x:Name="EdgeLyricSlot4"
+                                           Width="640"
+                                           Height="100"
+                                           FontFamily="pack://application:,,,/Resources/Fonts/#Poppins"
+                                           FontSize="26"
+                                           Foreground="#80FFFFFF"
+                                           TextAlignment="Center"
+                                           VerticalAlignment="Center"
+                                           TextWrapping="NoWrap"
+                                           TextTrimming="CharacterEllipsis" />
+                            </StackPanel>
+                        </Grid>
+
                         <StackPanel x:Name="EqualizerPanel"
                                     Orientation="Horizontal"
                                     HorizontalAlignment="Center"
