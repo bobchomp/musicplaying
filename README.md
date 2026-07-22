@@ -2,8 +2,9 @@
 
 A small Windows app that shows a fullscreen "now playing" screen on whichever monitor you pick:
 album cover, song title, and artist — nothing else. Background color shifts to match the album
-art. Opening the app shows a control panel where you choose the monitor and show/hide the
-display; it can also live in the system tray and start with Windows.
+art. Opening the app shows a control panel — with a live preview of the display right next to
+it — where you choose the monitor and show/hide the display; it can also live in the system tray
+and start with Windows.
 
 ## How it detects what's playing
 
@@ -40,14 +41,15 @@ No admin rights needed.
    whether lyrics were found for the current track. **You're responsible for making sure you have
    the right to publicly display lyrics for whatever you're playing** (e.g. a CCLI license) —
    this app only fetches and shows them, it doesn't handle licensing for you.
-6. Click **Preview** to open what the display would show in a plain, resizable window — handy for
-   checking a layout without putting the real fullscreen display up. It stays live, updating as
-   the track, layout, or blank state changes, until you close it.
+6. The panel on the right shows a live preview of exactly what the display would show — no
+   separate window to open, it's always there, updating as the track, layout, or blank state
+   changes, so you can check a layout before putting the real fullscreen display up.
 7. Click **Show Display** to put up the fullscreen now-playing screen. Press **Ctrl+Q** or click
    **Hide Display** to take it down.
 8. Once the display is up, **Blank Screen** temporarily hides the album art and text (just the
-   background color stays) without closing the display window — click **Unblank** to bring them
-   back.
+   background color stays) without closing the display window, and pauses whatever's playing —
+   click **Unblank** to bring them back and resume playback (only if Blank Screen was what paused
+   it, so it won't resume something you paused yourself while blanked).
 9. Check **Start with Windows** to have it launch automatically (minimized to the tray) at login,
    restoring whatever show/hide state it was last in.
 10. Closing the control panel window (the X button) asks whether to minimize it to the tray or
@@ -62,10 +64,10 @@ No admin rights needed.
     broadcasting restarts the feed under the new name. See below for what's needed on the
     receiving computer.
 
-The menu bar also has **View** (Show/Hide Display, Blank Screen, Preview — the same actions as
-the buttons below), **Settings > Open Settings Folder** (jumps straight to where
-`settings.json` lives), and **Help > About Music Display** (version number, a GitHub link, and
-the third-party license disclosures also listed below).
+The menu bar also has **View** (Show/Hide Display, Blank Screen — the same actions as the buttons
+below), **Settings > Open Settings Folder** (jumps straight to where `settings.json` lives), and
+**Help > About Music Display** (version number, a GitHub link, and the third-party license
+disclosures also listed below).
 
 ### Sending the feed to EasyWorship (or other NDI-aware software)
 
@@ -145,10 +147,10 @@ licenses.
 ```
 src/MusicDisplay/
   App.xaml(.cs)              application entry point, single-instance guard, shared styles
-  ControlPanelWindow.xaml(.cs) monitor picker, show/hide, tray icon, autostart toggle, menu
+  ControlPanelWindow.xaml(.cs) monitor picker, show/hide, tray icon, autostart toggle, menu,
+                               and an embedded live preview (hosts a NowPlayingView)
   CloseConfirmationWindow.xaml(.cs) minimize-to-tray vs exit prompt shown on window close
   DisplayWindow.xaml(.cs)      the fullscreen now-playing screen (hosts NowPlayingView)
-  PreviewWindow.xaml(.cs)      windowed preview of the same content (hosts NowPlayingView)
   NowPlayingView.xaml(.cs)     shared album art / title / artist visual, equalizer bars, clock
   Services/
     NowPlayingService.cs      reads title/artist/artwork via Windows SMTC

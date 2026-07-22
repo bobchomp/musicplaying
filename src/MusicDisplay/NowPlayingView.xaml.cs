@@ -15,7 +15,7 @@ namespace MusicDisplay;
 
 /// <summary>
 /// The album art / title / artist visual, shared by the fullscreen <see cref="DisplayWindow"/>
-/// and the windowed <see cref="PreviewWindow"/> so both always render identically.
+/// and the embedded preview in <see cref="ControlPanelWindow"/> so both always render identically.
 /// </summary>
 public partial class NowPlayingView : UserControl
 {
@@ -26,10 +26,11 @@ public partial class NowPlayingView : UserControl
     private const double TitleScrollPixelsPerSecond = 110;
     private static readonly TimeSpan LyricsPollInterval = TimeSpan.FromMilliseconds(250);
 
-    // LRC timestamps typically mark exactly when a line's vocal starts, which reads as
-    // advancing "too quick" if you're still reading the previous line — holding each line a
-    // little past its own timestamp before switching feels more natural.
-    private static readonly TimeSpan LyricsAdvanceDelay = TimeSpan.FromMilliseconds(350);
+    // A small hold past each line's own LRC timestamp before switching to it — enough to not
+    // feel like it's anticipating the line before it's sung, but small enough that it doesn't
+    // read as lagging behind the vocal, which 350ms turned out to (real-world feedback: it was
+    // switching noticeably after the line had already started, not before).
+    private static readonly TimeSpan LyricsAdvanceDelay = TimeSpan.FromMilliseconds(100);
     private static readonly Duration LayoutFadeOutDuration = new(TimeSpan.FromMilliseconds(180));
     private static readonly Duration LayoutFadeInDuration = new(TimeSpan.FromMilliseconds(220));
     private const double EdgeLyricLineHeight = 90;
@@ -63,10 +64,10 @@ public partial class NowPlayingView : UserControl
     private DispatcherTimer? _lyricsTimer;
     private bool _edgeLyricsSliding;
 
-    // Only used to tag debug log lines, since DisplayWindow/PreviewWindow/NdiOutputService each
-    // own a separate NowPlayingView instance and all three log to the same shared file — without
-    // this, two different instances evaluating the same track moments apart looks identical to
-    // one instance re-evaluating (resetting) itself.
+    // Only used to tag debug log lines, since DisplayWindow, ControlPanelWindow's embedded
+    // preview, and NdiOutputService each own a separate NowPlayingView instance and all three log
+    // to the same shared file — without this, two different instances evaluating the same track
+    // moments apart looks identical to one instance re-evaluating (resetting) itself.
     private readonly string _instanceId = Guid.NewGuid().ToString("N")[..6];
 
     public NowPlayingView()
@@ -241,6 +242,14 @@ public partial class NowPlayingView : UserControl
         ClockPanel.Visibility = edgeClockVisible ? Visibility.Visible : Visibility.Collapsed;
         SidePanel.Visibility = equalizerVisible || edgeClockVisible ? Visibility.Visible : Visibility.Collapsed;
 
+        // Centered has no side panel to show a clock in, so it gets this bottom-anchored one
+        // instead, in the same spot whether it's showing because nothing's playing or because the
+        // screen is blanked — computed here, above the blanked/idle branches below, so it stays in
+        // that exact same place either way rather than only appearing for one of the two.
+        IdleClockPanel.Visibility = _showClock && !onEdgeLayout && (_isBlanked || !hasTrack)
+            ? Visibility.Visible
+            : Visibility.Collapsed;
+
         if (_isBlanked)
         {
             // Deliberately not touching the title scroll here: ContentPanel is hidden either way,
@@ -256,10 +265,6 @@ public partial class NowPlayingView : UserControl
         {
             ContentPanel.Visibility = Visibility.Collapsed;
             IdlePanel.Visibility = Visibility.Visible;
-
-            // Centered has no side panel to show a clock in, so give it one here instead — only
-            // while idle, since once art/title are on screen there's no room for it.
-            IdleClockPanel.Visibility = _showClock && !onEdgeLayout ? Visibility.Visible : Visibility.Collapsed;
             AnimateBackgroundTo(IdleBackgroundColor);
             return;
         }

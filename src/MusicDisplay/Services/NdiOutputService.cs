@@ -17,7 +17,7 @@ namespace MusicDisplay.Services;
 /// but never hosted in a shown Window) rather than whatever's on the physical monitor, so the
 /// network feed works independently of whether the fullscreen <see cref="DisplayWindow"/> is
 /// currently shown — it mirrors the same layout/blank/clock/track state via the same methods
-/// DisplayWindow and PreviewWindow use.
+/// DisplayWindow and ControlPanelWindow's embedded preview use.
 /// </summary>
 public sealed class NdiOutputService : IDisposable
 {
