@@ -19,7 +19,6 @@ public partial class ControlPanelWindow : Window
 
     private WinForms.NotifyIcon? _trayIcon;
     private WinForms.ToolStripMenuItem? _trayToggleMenuItem;
-    private PreviewWindow? _previewWindow;
 
     private bool _isDisplayVisible;
     private bool _isBlanked;
@@ -30,7 +29,6 @@ public partial class ControlPanelWindow : Window
     private NowPlayingInfo? _lastNowPlayingInfo;
     private (string Title, string Artist)? _lyricsFetchedFor;
     private bool? _lyricsFound;
-    private IReadOnlyList<LyricsLine>? _lastLyrics;
 
     public ControlPanelWindow(bool startMinimized)
     {
@@ -44,9 +42,11 @@ public partial class ControlPanelWindow : Window
 
         ShowClockCheckBox.IsChecked = _settings.ShowClock;
         _displayWindow.SetShowClock(_settings.ShowClock);
+        PreviewView.SetShowClock(_settings.ShowClock);
 
         ShowLyricsCheckBox.IsChecked = _settings.ShowLyrics;
         _displayWindow.SetShowLyrics(_settings.ShowLyrics);
+        PreviewView.SetShowLyrics(_settings.ShowLyrics);
         RefreshLyricsStatusText();
 
         InitializeVolumeControls();
@@ -209,28 +209,8 @@ public partial class ControlPanelWindow : Window
         _settings.Layout = layout;
         SettingsService.Save(_settings);
         _displayWindow.SetLayout(layout);
-        _previewWindow?.SetLayout(layout);
+        PreviewView.SetLayout(layout);
         _ndiOutputService.SetLayout(layout);
-    }
-
-    private void PreviewButton_Click(object sender, RoutedEventArgs e)
-    {
-        if (_previewWindow == null)
-        {
-            _previewWindow = new PreviewWindow { Owner = this };
-            _previewWindow.Closed += (_, _) => _previewWindow = null;
-            _previewWindow.SetLayout(_settings.Layout);
-            _previewWindow.SetBlanked(_isBlanked);
-            _previewWindow.SetShowClock(_settings.ShowClock);
-            _previewWindow.SetShowLyrics(_settings.ShowLyrics);
-            _previewWindow.UpdateNowPlaying(_lastNowPlayingInfo);
-            _previewWindow.SetLyrics(_lastLyrics);
-            _previewWindow.Show();
-        }
-        else
-        {
-            _previewWindow.Activate();
-        }
     }
 
     private void SetupTrayIcon()
@@ -369,7 +349,7 @@ public partial class ControlPanelWindow : Window
 
         _isBlanked = false;
         _displayWindow.SetBlanked(false);
-        _previewWindow?.SetBlanked(false);
+        PreviewView.SetBlanked(false);
         _ndiOutputService.SetBlanked(false);
         BlankButton.Content = "Blank Screen";
         BlankButton.IsEnabled = visible;
@@ -384,7 +364,7 @@ public partial class ControlPanelWindow : Window
     {
         _isBlanked = !_isBlanked;
         _displayWindow.SetBlanked(_isBlanked);
-        _previewWindow?.SetBlanked(_isBlanked);
+        PreviewView.SetBlanked(_isBlanked);
         _ndiOutputService.SetBlanked(_isBlanked);
         BlankButton.Content = _isBlanked ? "Unblank" : "Blank Screen";
         BlankScreenMenuItem.Header = _isBlanked ? "Unblank" : "Blank Screen";
@@ -429,7 +409,7 @@ public partial class ControlPanelWindow : Window
         _settings.ShowClock = show;
         SettingsService.Save(_settings);
         _displayWindow.SetShowClock(show);
-        _previewWindow?.SetShowClock(show);
+        PreviewView.SetShowClock(show);
         _ndiOutputService.SetShowClock(show);
     }
 
@@ -446,12 +426,12 @@ public partial class ControlPanelWindow : Window
             // line visibly step through several earlier lines before landing on the current one.
             var freshPosition = _nowPlayingService.GetCurrentPosition();
             _displayWindow.UpdatePosition(freshPosition);
-            _previewWindow?.UpdatePosition(freshPosition);
+            PreviewView.UpdatePosition(freshPosition);
             _ndiOutputService.UpdatePosition(freshPosition);
         }
 
         _displayWindow.SetShowLyrics(show);
-        _previewWindow?.SetShowLyrics(show);
+        PreviewView.SetShowLyrics(show);
         _ndiOutputService.SetShowLyrics(show);
         RefreshLyricsStatusText();
     }
@@ -476,7 +456,7 @@ public partial class ControlPanelWindow : Window
             UpdateLyricsForTrack(info);
 
             _displayWindow.UpdateNowPlaying(info);
-            _previewWindow?.UpdateNowPlaying(info);
+            PreviewView.UpdateNowPlaying(info);
             _ndiOutputService.UpdateNowPlaying(info);
 
             NowPlayingStatusText.Text = info != null && !string.IsNullOrWhiteSpace(info.Title)
@@ -529,9 +509,8 @@ public partial class ControlPanelWindow : Window
 
     private void ApplyLyrics(IReadOnlyList<LyricsLine>? lyrics)
     {
-        _lastLyrics = lyrics;
         _displayWindow.SetLyrics(lyrics);
-        _previewWindow?.SetLyrics(lyrics);
+        PreviewView.SetLyrics(lyrics);
         _ndiOutputService.SetLyrics(lyrics);
     }
 
@@ -568,7 +547,6 @@ public partial class ControlPanelWindow : Window
         }
 
         _ndiOutputService.Dispose();
-        _previewWindow?.Close();
         _displayWindow.Close();
         Close();
 

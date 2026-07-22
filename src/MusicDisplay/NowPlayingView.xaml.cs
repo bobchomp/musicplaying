@@ -15,7 +15,7 @@ namespace MusicDisplay;
 
 /// <summary>
 /// The album art / title / artist visual, shared by the fullscreen <see cref="DisplayWindow"/>
-/// and the windowed <see cref="PreviewWindow"/> so both always render identically.
+/// and the embedded preview in <see cref="ControlPanelWindow"/> so both always render identically.
 /// </summary>
 public partial class NowPlayingView : UserControl
 {
@@ -63,10 +63,10 @@ public partial class NowPlayingView : UserControl
     private DispatcherTimer? _lyricsTimer;
     private bool _edgeLyricsSliding;
 
-    // Only used to tag debug log lines, since DisplayWindow/PreviewWindow/NdiOutputService each
-    // own a separate NowPlayingView instance and all three log to the same shared file — without
-    // this, two different instances evaluating the same track moments apart looks identical to
-    // one instance re-evaluating (resetting) itself.
+    // Only used to tag debug log lines, since DisplayWindow, ControlPanelWindow's embedded
+    // preview, and NdiOutputService each own a separate NowPlayingView instance and all three log
+    // to the same shared file — without this, two different instances evaluating the same track
+    // moments apart looks identical to one instance re-evaluating (resetting) itself.
     private readonly string _instanceId = Guid.NewGuid().ToString("N")[..6];
 
     public NowPlayingView()
