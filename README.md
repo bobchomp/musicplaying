@@ -28,9 +28,13 @@ No admin rights needed.
    while the display is up fades smoothly to the new arrangement instead of snapping.
 4. Check **Show time and date** to add a live clock stacked below the equalizer bars — only
    available with the Album left/right layouts, since Centered has no dedicated empty side for it.
-5. Check **Show synced lyrics** to display the current line of lyrics, karaoke-style, near the
-   bottom of the screen — looked up automatically from [LRCLIB](https://lrclib.net) by
-   title/artist and synced to playback position. Requires an internet connection; only shows
+5. Check **Show synced lyrics** to display the lyrics, karaoke-style, synced to playback position
+   — looked up automatically from [LRCLIB](https://lrclib.net) by title/artist. On the Album
+   left/right layouts it's a 3-line ticker in the side space above the equalizer bars (the line
+   just sung on top, the current line in the middle in white, the next line below), scrolling up
+   one line at a time as the song progresses; Centered layout, which has no side space for that,
+   shows just the current line near the bottom of the screen instead. Requires an internet
+   connection; only shows
    anything when LRCLIB has *synced* (time-stamped) lyrics for that specific track — there's no
    fallback to a static wall of text. The control panel's status line under the checkbox says
    whether lyrics were found for the current track. **You're responsible for making sure you have
@@ -129,6 +133,12 @@ The Show synced lyrics feature looks up lyrics from **[LRCLIB](https://lrclib.ne
 community lyrics database, over the internet at runtime — no lyrics are bundled with this app or
 this repo. As noted above, displaying lyrics publicly is your responsibility to license (e.g. via
 CCLI), not something this app manages.
+
+## License
+
+MIT — see [LICENSE](LICENSE). This covers this repo's own source code; the third-party
+components listed above (NDI Runtime, LRCLIB, the bundled Poppins font) remain under their own
+licenses.
 
 ## Project layout
 
