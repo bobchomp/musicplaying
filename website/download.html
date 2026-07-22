@@ -36,28 +36,51 @@
     </section>
 
     <div class="wrap">
-      <div class="download-card">
-        <img class="icon" src="assets/icon.png" alt="Music Display icon" />
+      <div class="download-columns">
+        <div class="download-card">
+          <img class="icon" src="assets/icon.png" alt="Music Display icon" />
 
-        <div id="download-version" class="download-version">
-          <span class="spinner" aria-hidden="true"></span>
-          Checking for the latest version…
+          <div id="download-version" class="download-version">
+            <span class="spinner" aria-hidden="true"></span>
+            Checking for the latest version…
+          </div>
+
+          <a id="download-button" class="btn btn-primary btn-large" href="https://github.com/bobchomp/musicplaying/releases/latest" disabled>
+            Download for Windows
+          </a>
+
+          <div id="download-meta" class="download-meta"></div>
+
+          <p class="download-note">
+            Installs without admin rights. Prefer to browse versions yourself?
+            <a href="https://github.com/bobchomp/musicplaying/releases">See all releases on GitHub</a>.
+          </p>
+
+          <div id="download-error" class="download-error">
+            <p>Couldn't reach GitHub to check the latest version. You can still
+            <a href="https://github.com/bobchomp/musicplaying/releases/latest">grab it from the Releases page</a>.</p>
+            <p id="download-error-detail" class="download-error-detail"></p>
+          </div>
         </div>
 
-        <a id="download-button" class="btn btn-primary btn-large" href="https://github.com/bobchomp/musicplaying/releases/latest" disabled>
-          Download for Windows
-        </a>
+        <div class="download-card ndi-card">
+          <div class="icon-badge" aria-hidden="true">📡</div>
 
-        <div id="download-meta" class="download-meta"></div>
+          <h2>Using the Network Feed?</h2>
+          <p class="ndi-blurb">
+            The optional Network Feed broadcasts the display over your LAN as an NDI
+            source. It needs the free NDI Runtime installed separately — Music Display
+            doesn't bundle it.
+          </p>
 
-        <p class="download-note">
-          Installs without admin rights. Prefer to browse versions yourself?
-          <a href="https://github.com/bobchomp/musicplaying/releases">See all releases on GitHub</a>.
-        </p>
+          <a class="btn btn-secondary btn-large" href="http://ndi.link/NDIRedistV6" target="_blank" rel="noopener">
+            Download NDI Runtime
+          </a>
 
-        <div id="download-error" class="download-error">
-          Couldn't reach GitHub to check the latest version. You can still
-          <a href="https://github.com/bobchomp/musicplaying/releases/latest">grab it from the Releases page</a>.
+          <p class="download-note">
+            Official redistributable from NDI/Vizrt. Only needed if you turn on
+            Network Feed — everything else works without it.
+          </p>
         </div>
       </div>
 

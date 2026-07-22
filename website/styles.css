@@ -494,14 +494,22 @@ footer.site .brand img {
   margin: 0 auto;
 }
 
-.download-card {
-  max-width: 560px;
+.download-columns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  align-items: start;
+  max-width: 960px;
   margin: 40px auto 0;
+}
+
+.download-card {
   background: var(--bg-elevated);
   border: 1px solid var(--border);
   border-radius: 20px;
   padding: 40px;
   text-align: center;
+  height: 100%;
 }
 
 .download-card img.icon {
@@ -510,6 +518,30 @@ footer.site .brand img {
   border-radius: 18px;
   margin-bottom: 20px;
   box-shadow: 0 12px 30px -10px rgba(124, 92, 255, 0.5);
+}
+
+.download-card .icon-badge {
+  width: 72px;
+  height: 72px;
+  border-radius: 18px;
+  margin: 0 auto 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 30px;
+  background: var(--bg-elevated-2);
+  border: 1px solid var(--border);
+}
+
+.ndi-card h2 {
+  font-size: 20px;
+  margin: 0 0 12px;
+}
+
+.ndi-card .ndi-blurb {
+  font-size: 14px;
+  color: var(--text-muted);
+  margin: 0 0 24px;
 }
 
 .download-version {
@@ -557,6 +589,21 @@ footer.site .brand img {
   border: 1px solid rgba(255, 92, 138, 0.35);
   color: #ffb3c5;
   font-size: 13px;
+}
+
+.download-error p {
+  margin: 0;
+}
+
+.download-error-detail {
+  margin-top: 8px !important;
+  color: #ffb3c5;
+  opacity: 0.75;
+  font-size: 12px;
+}
+
+.download-error-detail:empty {
+  display: none;
 }
 
 .spinner {
@@ -637,6 +684,11 @@ footer.site .brand img {
 
   .cta-banner {
     padding: 40px 24px;
+  }
+
+  .download-columns {
+    grid-template-columns: 1fr;
+    max-width: 560px;
   }
 }
 
