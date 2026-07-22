@@ -36,6 +36,13 @@ public partial class NowPlayingView : UserControl
     private const double EdgeLyricLineHeight = 90;
     private static readonly Duration EdgeLyricsSlideDuration = new(TimeSpan.FromMilliseconds(380));
 
+    // The edge ticker's slide takes ~380ms to visually complete, so triggering it at the same
+    // moment CurrentLyricText switches (see LyricsAdvanceDelay above) means the new line doesn't
+    // actually land until ~380ms after that — with the animation itself now the thing making it
+    // read as late, not the switch point. Starting the slide this far ahead of the line's own
+    // timestamp instead means it finishes right around when the line starts, not well after.
+    private static readonly TimeSpan EdgeLyricsLeadTime = TimeSpan.FromMilliseconds(400);
+
     private static readonly Color IdleBackgroundColor = (Color)ColorConverter.ConvertFromString("#0B0B0D")!;
     private static readonly Random EqualizerRandom = new();
     private static readonly string DebugLogPath = Path.Combine(
@@ -60,6 +67,7 @@ public partial class NowPlayingView : UserControl
     private IReadOnlyList<LyricsLine>? _lyrics;
     private bool _showLyrics;
     private int _currentLyricIndex = -1;
+    private int _edgeLyricIndex = -1;
     private PlaybackPosition? _lastPosition;
     private DispatcherTimer? _lyricsTimer;
     private bool _edgeLyricsSliding;
@@ -106,6 +114,7 @@ public partial class NowPlayingView : UserControl
     {
         _lyrics = lines is { Count: > 0 } ? lines : null;
         _currentLyricIndex = -1;
+        _edgeLyricIndex = -1;
         UpdateLyricsVisibility();
     }
 
@@ -542,6 +551,7 @@ public partial class NowPlayingView : UserControl
         _lyricsTimer.Stop();
         _lyricsTimer = null;
         _currentLyricIndex = -1;
+        _edgeLyricIndex = -1;
     }
 
     private void UpdateCurrentLyricLine()
@@ -558,12 +568,40 @@ public partial class NowPlayingView : UserControl
             ? (DateTime.UtcNow - anchor.LastUpdatedTime) * anchor.PlaybackRate
             : TimeSpan.Zero;
         var position = anchor.Position + elapsed;
-        var displayPosition = position - LyricsAdvanceDelay;
 
-        int index = -1;
-        for (int i = 0; i < _lyrics.Count; i++)
+        int index = FindLyricIndex(position - LyricsAdvanceDelay);
+        if (index != _currentLyricIndex)
         {
-            if (_lyrics[i].Time > displayPosition)
+            _currentLyricIndex = index;
+            CurrentLyricText.Text = index >= 0 ? _lyrics[index].Text : string.Empty;
+        }
+
+        // Tracked separately from _currentLyricIndex above: this looks EdgeLyricsLeadTime into the
+        // future rather than slightly behind, so the slide animation (see AdvanceEdgeLyrics) starts
+        // early enough to actually land on the line at the right moment instead of well after it.
+        int edgeIndex = FindLyricIndex(position + EdgeLyricsLeadTime);
+        if (edgeIndex != _edgeLyricIndex)
+        {
+            int previousEdgeIndex = _edgeLyricIndex;
+            _edgeLyricIndex = edgeIndex;
+            LogLyricsTickerDebug(
+                $"[{_instanceId}] edgeIndex {previousEdgeIndex} -> {edgeIndex} of {_lyrics.Count} " +
+                $"nextText=\"{EdgeLyricLineOrEmpty(edgeIndex + 1)}\" edgeVisible={EdgeLyricsPanel.Visibility} sliding={_edgeLyricsSliding}");
+            AdvanceEdgeLyrics(previousEdgeIndex, edgeIndex);
+        }
+    }
+
+    /// <summary>The last lyric line whose own timestamp is at or before <paramref name="position"/>
+    /// (-1 if before the first line). Shared by both CurrentLyricText and the edge ticker, which
+    /// each pass a different effective position — the two need to switch at different moments (see
+    /// LyricsAdvanceDelay vs. EdgeLyricsLeadTime above), not just show different visuals of the
+    /// same switch.</summary>
+    private int FindLyricIndex(TimeSpan position)
+    {
+        int index = -1;
+        for (int i = 0; i < _lyrics!.Count; i++)
+        {
+            if (_lyrics[i].Time > position)
             {
                 break;
             }
@@ -571,18 +609,7 @@ public partial class NowPlayingView : UserControl
             index = i;
         }
 
-        if (index == _currentLyricIndex)
-        {
-            return;
-        }
-
-        int previousIndex = _currentLyricIndex;
-        _currentLyricIndex = index;
-        CurrentLyricText.Text = index >= 0 ? _lyrics[index].Text : string.Empty;
-        LogLyricsTickerDebug(
-            $"[{_instanceId}] index {previousIndex} -> {index} of {_lyrics.Count} " +
-            $"nextText=\"{EdgeLyricLineOrEmpty(index + 1)}\" edgeVisible={EdgeLyricsPanel.Visibility} sliding={_edgeLyricsSliding}");
-        AdvanceEdgeLyrics(previousIndex, index);
+        return index;
     }
 
     private string EdgeLyricLineOrEmpty(int index) =>
