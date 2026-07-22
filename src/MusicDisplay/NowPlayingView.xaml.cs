@@ -25,6 +25,11 @@ public partial class NowPlayingView : UserControl
     private const double TitleScrollEdgePadding = 40;
     private const double TitleScrollPixelsPerSecond = 110;
     private static readonly TimeSpan LyricsPollInterval = TimeSpan.FromMilliseconds(250);
+
+    // LRC timestamps typically mark exactly when a line's vocal starts, which reads as
+    // advancing "too quick" if you're still reading the previous line — holding each line a
+    // little past its own timestamp before switching feels more natural.
+    private static readonly TimeSpan LyricsAdvanceDelay = TimeSpan.FromMilliseconds(350);
     private static readonly Duration LayoutFadeOutDuration = new(TimeSpan.FromMilliseconds(180));
     private static readonly Duration LayoutFadeInDuration = new(TimeSpan.FromMilliseconds(220));
 
@@ -515,11 +520,12 @@ public partial class NowPlayingView : UserControl
             ? (DateTime.UtcNow - anchor.LastUpdatedTime) * anchor.PlaybackRate
             : TimeSpan.Zero;
         var position = anchor.Position + elapsed;
+        var displayPosition = position - LyricsAdvanceDelay;
 
         int index = -1;
         for (int i = 0; i < _lyrics.Count; i++)
         {
-            if (_lyrics[i].Time > position)
+            if (_lyrics[i].Time > displayPosition)
             {
                 break;
             }

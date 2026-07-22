@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Music Display — a fullscreen now-playing screen for Windows</title>
+  <meta name="description" content="Music Display shows a fullscreen now-playing screen — album art, title, and artist — for whatever's playing on Windows. Free, with layouts, synced lyrics, an NDI network feed, and more." />
+  <link rel="icon" href="assets/icon.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="site">
+    <div class="wrap">
+      <a class="brand" href="index.html">
+        <img src="assets/icon.png" alt="" />
+        Music Display
+      </a>
+      <nav class="site-nav">
+        <a href="index.html#features" class="hide-mobile">Features</a>
+        <a href="index.html#how-it-works" class="hide-mobile">How it works</a>
+        <a href="https://github.com/bobchomp/musicplaying" class="hide-mobile">GitHub</a>
+        <a href="download.html" class="btn btn-primary">Download</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="wrap" style="display: contents;">
+        <div>
+          <span class="eyebrow">Free for Windows</span>
+          <h1>Turn any screen into a <span>now&nbsp;playing</span> display</h1>
+          <p class="lead">
+            Music Display fills a monitor with the album art, title, and artist of whatever
+            you're playing — Spotify, a browser, VLC, anything. Pick a monitor, hit show, and
+            it's live.
+          </p>
+          <div class="hero-actions">
+            <a href="download.html" class="btn btn-primary btn-large">Download for Windows</a>
+            <a href="index.html#features" class="btn btn-secondary btn-large">See features</a>
+          </div>
+          <p class="hero-meta">Windows 10 (1809+) and Windows 11 · <strong>No account, no install fees</strong></p>
+        </div>
+
+        <div>
+          <div class="mockup">
+            <div class="mockup-inner">
+              <div class="mockup-art"></div>
+              <div class="mockup-text">
+                <div class="mockup-title">Whatever You're Playing</div>
+                <div class="mockup-artist">Any Artist</div>
+              </div>
+              <div class="mockup-bars">
+                <span></span><span></span><span></span><span></span><span></span>
+              </div>
+            </div>
+          </div>
+          <p class="mockup-caption">The background shifts to match the album art automatically.</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="features" class="alt">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow">Features</span>
+          <h2>Built for a second screen, a stream, or a stage</h2>
+          <p>Everything it does is aimed at one job: showing what's playing, clearly, on a screen other than your own.</p>
+        </div>
+
+        <div class="features">
+          <div class="feature-card">
+            <div class="feature-icon">🖥️</div>
+            <h3>Works with everything already playing</h3>
+            <p>Reads Windows' built-in media session, so it works automatically with Spotify, browsers, Windows Media Player, VLC, iTunes, and anything else that reports "now playing" — no per-app setup.</p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon">🎨</div>
+            <h3>Three layouts</h3>
+            <p>Centered, or album art hugging the left or right edge with an animated equalizer visualization filling the rest of the screen. Switching layouts fades smoothly instead of snapping.</p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon">🎤</div>
+            <h3>Synced lyrics</h3>
+            <p>Optionally shows the current line of lyrics, karaoke-style, synced to playback position — looked up automatically, no manual entry.</p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon">🕐</div>
+            <h3>Clock overlay</h3>
+            <p>An optional live time and date display for the album-left/right layouts, sized and aligned to match the rest of the screen.</p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon">📡</div>
+            <h3>NDI network feed</h3>
+            <p>Broadcast the display over your network as an NDI source — pick it up in EasyWorship (via NDI Virtual Input) or any other NDI-aware software on another computer.</p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon">🎚️</div>
+            <h3>Playback &amp; volume controls</h3>
+            <p>Previous, play/pause, and next send commands straight to whatever's playing, and a slider controls the system's master volume — right from the control panel.</p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon">🖼️</div>
+            <h3>Preview without going fullscreen</h3>
+            <p>A windowed preview shows exactly what the display would look like, live, so you can check a layout before putting it on a real screen.</p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon">🌙</div>
+            <h3>Blank screen &amp; tray icon</h3>
+            <p>Temporarily blank the display without closing it, and let the app live quietly in the system tray, starting with Windows if you want it always ready.</p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon">🆓</div>
+            <h3>Free and open source</h3>
+            <p>No account, no subscription, no telemetry. The full source is on GitHub if you want to see how it works or change something yourself.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="how-it-works">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow">How it works</span>
+          <h2>Up and running in under a minute</h2>
+          <p>No setup inside the apps you're already using — Music Display just reads what Windows already knows is playing.</p>
+        </div>
+
+        <div class="steps">
+          <div class="step">
+            <h3>Install and launch</h3>
+            <p>Download the installer, run it — no admin rights needed — and the control panel opens automatically.</p>
+          </div>
+          <div class="step">
+            <h3>Pick a monitor and layout</h3>
+            <p>Choose which screen it should appear on and a layout, then click Preview if you want to check it first.</p>
+          </div>
+          <div class="step">
+            <h3>Show the display</h3>
+            <p>Click Show Display and start playing something anywhere on your PC — the screen updates automatically as tracks change.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="alt">
+      <div class="wrap">
+        <div class="cta-banner">
+          <h2>Ready to try it?</h2>
+          <p>Free download, no account required.</p>
+          <a href="download.html" class="btn btn-primary btn-large">Download for Windows</a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site">
+    <div class="wrap">
+      <a class="brand" href="index.html">
+        <img src="assets/icon.png" alt="" />
+        Music Display
+      </a>
+      <div class="footer-links">
+        <a href="download.html">Download</a>
+        <a href="https://github.com/bobchomp/musicplaying">GitHub</a>
+        <a href="https://github.com/bobchomp/musicplaying/releases">Releases</a>
+        <a href="https://github.com/bobchomp/musicplaying/blob/main/README.md">Docs</a>
+      </div>
+    </div>
+  </footer>
+</body>
+</html>

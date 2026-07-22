@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Download Music Display for Windows</title>
+  <meta name="description" content="Download the latest version of Music Display for Windows — a free fullscreen now-playing display." />
+  <link rel="icon" href="assets/icon.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="site">
+    <div class="wrap">
+      <a class="brand" href="index.html">
+        <img src="assets/icon.png" alt="" />
+        Music Display
+      </a>
+      <nav class="site-nav">
+        <a href="index.html#features" class="hide-mobile">Features</a>
+        <a href="index.html#how-it-works" class="hide-mobile">How it works</a>
+        <a href="https://github.com/bobchomp/musicplaying" class="hide-mobile">GitHub</a>
+        <a href="download.html" class="btn btn-primary active">Download</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="download-hero">
+      <div class="wrap">
+        <h1>Download Music Display</h1>
+        <p>Free for Windows 10 (1809+) and Windows 11. No account required.</p>
+      </div>
+    </section>
+
+    <div class="wrap">
+      <div class="download-card">
+        <img class="icon" src="assets/icon.png" alt="Music Display icon" />
+
+        <div id="download-version" class="download-version">
+          <span class="spinner" aria-hidden="true"></span>
+          Checking for the latest version…
+        </div>
+
+        <a id="download-button" class="btn btn-primary btn-large" href="https://github.com/bobchomp/musicplaying/releases/latest" disabled>
+          Download for Windows
+        </a>
+
+        <div id="download-meta" class="download-meta"></div>
+
+        <p class="download-note">
+          Installs without admin rights. Prefer to browse versions yourself?
+          <a href="https://github.com/bobchomp/musicplaying/releases">See all releases on GitHub</a>.
+        </p>
+
+        <div id="download-error" class="download-error">
+          Couldn't reach GitHub to check the latest version. You can still
+          <a href="https://github.com/bobchomp/musicplaying/releases/latest">grab it from the Releases page</a>.
+        </div>
+      </div>
+
+      <div class="requirements">
+        <h2>Before you install</h2>
+        <ul>
+          <li><strong>Windows 10 (build 17763 / version 1809) or later</strong> — needed for the media-session API this app reads "now playing" info from.</li>
+          <li><strong>No admin rights needed</strong> — the installer installs for your user account only.</li>
+          <li><strong>Optional: NDI Runtime</strong> — only needed if you turn on the Network Feed option to broadcast the display over your LAN.</li>
+        </ul>
+      </div>
+    </div>
+  </main>
+
+  <footer class="site">
+    <div class="wrap">
+      <a class="brand" href="index.html">
+        <img src="assets/icon.png" alt="" />
+        Music Display
+      </a>
+      <div class="footer-links">
+        <a href="index.html">Home</a>
+        <a href="https://github.com/bobchomp/musicplaying">GitHub</a>
+        <a href="https://github.com/bobchomp/musicplaying/releases">Releases</a>
+        <a href="https://github.com/bobchomp/musicplaying/blob/main/README.md">Docs</a>
+      </div>
+    </div>
+  </footer>
+
+  <script src="download.js"></script>
+</body>
+</html>
