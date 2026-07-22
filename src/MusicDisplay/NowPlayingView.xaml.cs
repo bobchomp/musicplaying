@@ -57,6 +57,7 @@ public partial class NowPlayingView : UserControl
     private int _currentLyricIndex = -1;
     private PlaybackPosition? _lastPosition;
     private DispatcherTimer? _lyricsTimer;
+    private bool _edgeLyricsSliding;
 
     // Only used to tag debug log lines, since DisplayWindow/PreviewWindow/NdiOutputService each
     // own a separate NowPlayingView instance and all three log to the same shared file — without
@@ -564,6 +565,7 @@ public partial class NowPlayingView : UserControl
     /// slots weren't pre-loaded with the right neighbouring text for it.</summary>
     private void SetEdgeLyricsWindow(int index)
     {
+        _edgeLyricsSliding = false;
         EdgeLyricSlot0.Text = EdgeLyricLineOrEmpty(index - 2);
         EdgeLyricSlot1.Text = EdgeLyricLineOrEmpty(index - 1);
         EdgeLyricSlot2.Text = EdgeLyricLineOrEmpty(index);
@@ -576,16 +578,21 @@ public partial class NowPlayingView : UserControl
     /// <summary>Slides the edge lyrics ticker up by one line when the line advances normally, so
     /// the slot that already held the upcoming line's text (loaded ahead of time by the previous
     /// call) scrolls into view instead of just popping to new text. Anything other than a plain
-    /// one-line forward step just snaps straight to the new window instead.</summary>
+    /// one-line forward step just snaps straight to the new window instead — including while a
+    /// previous slide is still in flight: BeginAnimation would otherwise silently replace it, and
+    /// since its Completed handler is the only place the slots' text gets refreshed for the new
+    /// index, that step's line would never appear at all — normal lyric pacing can easily advance
+    /// a line again before the previous slide's ~380ms finishes.</summary>
     private void AdvanceEdgeLyrics(int previousIndex, int newIndex)
     {
         bool simpleForwardStep = previousIndex >= 0 && newIndex == previousIndex + 1;
-        if (!simpleForwardStep)
+        if (!simpleForwardStep || _edgeLyricsSliding)
         {
             SetEdgeLyricsWindow(newIndex);
             return;
         }
 
+        _edgeLyricsSliding = true;
         var animation = new DoubleAnimation
         {
             From = -EdgeLyricLineHeight,
