@@ -146,6 +146,9 @@ nav.site-nav a.active {
 
 .hero {
   padding: 88px 0 64px;
+}
+
+.hero .wrap {
   display: grid;
   grid-template-columns: 1.05fr 0.95fr;
   gap: 56px;
@@ -609,8 +612,11 @@ footer.site .brand img {
 
 @media (max-width: 880px) {
   .hero {
-    grid-template-columns: 1fr;
     padding-top: 56px;
+  }
+
+  .hero .wrap {
+    grid-template-columns: 1fr;
   }
 
   .hero h1 {
