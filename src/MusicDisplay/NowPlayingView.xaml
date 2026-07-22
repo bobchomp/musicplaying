@@ -112,12 +112,14 @@
                              slack below the visible window before the 300px clip boundary — the
                              equalizer itself starts exactly at 300 (this Grid's 612px height minus its
                              260px height and 52px bottom margin), so this buffer keeps the bottom line
-                             from ever sitting flush against that edge. The TextBlock is nested inside
-                             each Border rather than given its own explicit Height directly, because a
-                             TextBlock with an explicit Height doesn't actually center its text
-                             vertically via VerticalAlignment — that property centers the element's own
-                             box within its parent's slot, not the glyphs within an oversized box, so
-                             the text would render pinned to the top of it instead. Five slots (not
+                             from ever sitting flush against that edge. Each TextBlock sits in a Viewbox
+                             (Stretch="Uniform", StretchDirection="DownOnly") instead of using
+                             TextTrimming — a too-long line shrinks in place to fit on one line rather
+                             than getting cut off with an ellipsis; short lines are unaffected, since
+                             DownOnly never scales up past the TextBlock's own FontSize. The TextBlock
+                             has no explicit Width so the Viewbox sees its real, untrimmed size to scale
+                             against — a fixed Width would always measure as "exactly fits" regardless
+                             of the actual text length, defeating the shrink entirely. Five slots (not
                              three) are kept so the outer two can hold the lines just outside the
                              visible window, clipped out of view — advancing a line slides the whole
                              stack up by one slot, revealing the fifth slot's line at the bottom instead
@@ -146,59 +148,54 @@
                                 </Canvas.RenderTransform>
 
                                 <Border Canvas.Top="0" Width="690" Height="90">
-                                    <TextBlock x:Name="EdgeLyricSlot0"
-                                               Width="690"
-                                               FontFamily="pack://application:,,,/Resources/Fonts/#Poppins"
-                                               FontSize="26"
-                                               Foreground="#80FFFFFF"
-                                               TextAlignment="Center"
-                                               VerticalAlignment="Center"
-                                               TextWrapping="NoWrap"
-                                               TextTrimming="CharacterEllipsis" />
+                                    <Viewbox Stretch="Uniform" StretchDirection="DownOnly">
+                                        <TextBlock x:Name="EdgeLyricSlot0"
+                                                   FontFamily="pack://application:,,,/Resources/Fonts/#Poppins"
+                                                   FontSize="26"
+                                                   Foreground="#80FFFFFF"
+                                                   TextAlignment="Center"
+                                                   TextWrapping="NoWrap" />
+                                    </Viewbox>
                                 </Border>
                                 <Border Canvas.Top="90" Width="690" Height="90">
-                                    <TextBlock x:Name="EdgeLyricSlot1"
-                                               Width="690"
-                                               FontFamily="pack://application:,,,/Resources/Fonts/#Poppins"
-                                               FontSize="26"
-                                               Foreground="#80FFFFFF"
-                                               TextAlignment="Center"
-                                               VerticalAlignment="Center"
-                                               TextWrapping="NoWrap"
-                                               TextTrimming="CharacterEllipsis" />
+                                    <Viewbox Stretch="Uniform" StretchDirection="DownOnly">
+                                        <TextBlock x:Name="EdgeLyricSlot1"
+                                                   FontFamily="pack://application:,,,/Resources/Fonts/#Poppins"
+                                                   FontSize="26"
+                                                   Foreground="#80FFFFFF"
+                                                   TextAlignment="Center"
+                                                   TextWrapping="NoWrap" />
+                                    </Viewbox>
                                 </Border>
                                 <Border Canvas.Top="180" Width="690" Height="90">
-                                    <TextBlock x:Name="EdgeLyricSlot2"
-                                               Width="690"
-                                               FontFamily="pack://application:,,,/Resources/Fonts/#Poppins SemiBold"
-                                               FontSize="38"
-                                               Foreground="White"
-                                               TextAlignment="Center"
-                                               VerticalAlignment="Center"
-                                               TextWrapping="NoWrap"
-                                               TextTrimming="CharacterEllipsis" />
+                                    <Viewbox Stretch="Uniform" StretchDirection="DownOnly">
+                                        <TextBlock x:Name="EdgeLyricSlot2"
+                                                   FontFamily="pack://application:,,,/Resources/Fonts/#Poppins SemiBold"
+                                                   FontSize="38"
+                                                   Foreground="White"
+                                                   TextAlignment="Center"
+                                                   TextWrapping="NoWrap" />
+                                    </Viewbox>
                                 </Border>
                                 <Border Canvas.Top="270" Width="690" Height="90">
-                                    <TextBlock x:Name="EdgeLyricSlot3"
-                                               Width="690"
-                                               FontFamily="pack://application:,,,/Resources/Fonts/#Poppins"
-                                               FontSize="26"
-                                               Foreground="#80FFFFFF"
-                                               TextAlignment="Center"
-                                               VerticalAlignment="Center"
-                                               TextWrapping="NoWrap"
-                                               TextTrimming="CharacterEllipsis" />
+                                    <Viewbox Stretch="Uniform" StretchDirection="DownOnly">
+                                        <TextBlock x:Name="EdgeLyricSlot3"
+                                                   FontFamily="pack://application:,,,/Resources/Fonts/#Poppins"
+                                                   FontSize="26"
+                                                   Foreground="#80FFFFFF"
+                                                   TextAlignment="Center"
+                                                   TextWrapping="NoWrap" />
+                                    </Viewbox>
                                 </Border>
                                 <Border Canvas.Top="360" Width="690" Height="90">
-                                    <TextBlock x:Name="EdgeLyricSlot4"
-                                               Width="690"
-                                               FontFamily="pack://application:,,,/Resources/Fonts/#Poppins"
-                                               FontSize="26"
-                                               Foreground="#80FFFFFF"
-                                               TextAlignment="Center"
-                                               VerticalAlignment="Center"
-                                               TextWrapping="NoWrap"
-                                               TextTrimming="CharacterEllipsis" />
+                                    <Viewbox Stretch="Uniform" StretchDirection="DownOnly">
+                                        <TextBlock x:Name="EdgeLyricSlot4"
+                                                   FontFamily="pack://application:,,,/Resources/Fonts/#Poppins"
+                                                   FontSize="26"
+                                                   Foreground="#80FFFFFF"
+                                                   TextAlignment="Center"
+                                                   TextWrapping="NoWrap" />
+                                    </Viewbox>
                                 </Border>
                             </Canvas>
                         </Grid>
