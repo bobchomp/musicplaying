@@ -140,14 +140,14 @@
                                  to TitleClip/TitleText above for the same kind of oversized-child
                                  clipping. VerticalAlignment="Top" here removes the same ambiguity for
                                  the Canvas's own placement within this Grid. -->
-                            <Canvas x:Name="EdgeLyricsStack" Width="680" Height="450" VerticalAlignment="Top">
+                            <Canvas x:Name="EdgeLyricsStack" Width="690" Height="450" VerticalAlignment="Top">
                                 <Canvas.RenderTransform>
                                     <TranslateTransform x:Name="EdgeLyricsTransform" Y="-90" />
                                 </Canvas.RenderTransform>
 
-                                <Border Canvas.Top="0" Width="680" Height="90">
+                                <Border Canvas.Top="0" Width="690" Height="90">
                                     <TextBlock x:Name="EdgeLyricSlot0"
-                                               Width="680"
+                                               Width="690"
                                                FontFamily="pack://application:,,,/Resources/Fonts/#Poppins"
                                                FontSize="26"
                                                Foreground="#80FFFFFF"
@@ -156,9 +156,9 @@
                                                TextWrapping="NoWrap"
                                                TextTrimming="CharacterEllipsis" />
                                 </Border>
-                                <Border Canvas.Top="90" Width="680" Height="90">
+                                <Border Canvas.Top="90" Width="690" Height="90">
                                     <TextBlock x:Name="EdgeLyricSlot1"
-                                               Width="680"
+                                               Width="690"
                                                FontFamily="pack://application:,,,/Resources/Fonts/#Poppins"
                                                FontSize="26"
                                                Foreground="#80FFFFFF"
@@ -167,9 +167,9 @@
                                                TextWrapping="NoWrap"
                                                TextTrimming="CharacterEllipsis" />
                                 </Border>
-                                <Border Canvas.Top="180" Width="680" Height="90">
+                                <Border Canvas.Top="180" Width="690" Height="90">
                                     <TextBlock x:Name="EdgeLyricSlot2"
-                                               Width="680"
+                                               Width="690"
                                                FontFamily="pack://application:,,,/Resources/Fonts/#Poppins SemiBold"
                                                FontSize="38"
                                                Foreground="White"
@@ -178,9 +178,9 @@
                                                TextWrapping="NoWrap"
                                                TextTrimming="CharacterEllipsis" />
                                 </Border>
-                                <Border Canvas.Top="270" Width="680" Height="90">
+                                <Border Canvas.Top="270" Width="690" Height="90">
                                     <TextBlock x:Name="EdgeLyricSlot3"
-                                               Width="680"
+                                               Width="690"
                                                FontFamily="pack://application:,,,/Resources/Fonts/#Poppins"
                                                FontSize="26"
                                                Foreground="#80FFFFFF"
@@ -189,9 +189,9 @@
                                                TextWrapping="NoWrap"
                                                TextTrimming="CharacterEllipsis" />
                                 </Border>
-                                <Border Canvas.Top="360" Width="680" Height="90">
+                                <Border Canvas.Top="360" Width="690" Height="90">
                                     <TextBlock x:Name="EdgeLyricSlot4"
-                                               Width="680"
+                                               Width="690"
                                                FontFamily="pack://application:,,,/Resources/Fonts/#Poppins"
                                                FontSize="26"
                                                Foreground="#80FFFFFF"
