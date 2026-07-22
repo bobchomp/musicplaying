@@ -47,8 +47,9 @@ No admin rights needed.
 7. Click **Show Display** to put up the fullscreen now-playing screen. Press **Ctrl+Q** or click
    **Hide Display** to take it down.
 8. Once the display is up, **Blank Screen** temporarily hides the album art and text (just the
-   background color stays) without closing the display window — click **Unblank** to bring them
-   back.
+   background color stays) without closing the display window, and pauses whatever's playing —
+   click **Unblank** to bring them back and resume playback (only if Blank Screen was what paused
+   it, so it won't resume something you paused yourself while blanked).
 9. Check **Start with Windows** to have it launch automatically (minimized to the tray) at login,
    restoring whatever show/hide state it was last in.
 10. Closing the control panel window (the X button) asks whether to minimize it to the tray or
