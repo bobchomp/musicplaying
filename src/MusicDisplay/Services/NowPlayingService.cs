@@ -92,6 +92,13 @@ public sealed class NowPlayingService : IDisposable
     /// silently does nothing if there's no session or the source app doesn't support the command.</summary>
     public Task PlayPauseAsync() => SendCommandAsync(session => session.TryTogglePlayPauseAsync());
 
+    /// <summary>Explicit pause/resume, rather than the toggle above — used where the caller needs
+    /// a specific direction (e.g. Blank Screen pausing playback) regardless of the current state,
+    /// where toggling blind could play instead of pause.</summary>
+    public Task PauseAsync() => SendCommandAsync(session => session.TryPauseAsync());
+
+    public Task ResumeAsync() => SendCommandAsync(session => session.TryPlayAsync());
+
     public Task NextAsync() => SendCommandAsync(session => session.TrySkipNextAsync());
 
     public Task PreviousAsync() => SendCommandAsync(session => session.TrySkipPreviousAsync());

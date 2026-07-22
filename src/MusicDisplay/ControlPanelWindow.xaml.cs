@@ -22,6 +22,7 @@ public partial class ControlPanelWindow : Window
 
     private bool _isDisplayVisible;
     private bool _isBlanked;
+    private bool _pausedByBlank;
     private bool _suppressMonitorSelectionHandling;
     private bool _suppressVolumeSliderHandling;
     private bool _suppressNetworkFeedHandling;
@@ -347,10 +348,7 @@ public partial class ControlPanelWindow : Window
             _trayToggleMenuItem.Text = visible ? "Hide Display" : "Show Display";
         }
 
-        _isBlanked = false;
-        _displayWindow.SetBlanked(false);
-        PreviewView.SetBlanked(false);
-        _ndiOutputService.SetBlanked(false);
+        ApplyBlanked(false);
         BlankButton.Content = "Blank Screen";
         BlankButton.IsEnabled = visible;
         BlankScreenMenuItem.Header = "Blank Screen";
@@ -362,12 +360,36 @@ public partial class ControlPanelWindow : Window
 
     private void BlankButton_Click(object sender, RoutedEventArgs e)
     {
-        _isBlanked = !_isBlanked;
-        _displayWindow.SetBlanked(_isBlanked);
-        PreviewView.SetBlanked(_isBlanked);
-        _ndiOutputService.SetBlanked(_isBlanked);
+        ApplyBlanked(!_isBlanked);
         BlankButton.Content = _isBlanked ? "Unblank" : "Blank Screen";
         BlankScreenMenuItem.Header = _isBlanked ? "Unblank" : "Blank Screen";
+    }
+
+    /// <summary>Pauses playback when blanking (only if it was actually playing) and resumes it
+    /// when unblanking, but only if this is what paused it — so unblanking never overrides a
+    /// pause the user made themselves while the screen was blank. Best-effort/fire-and-forget:
+    /// same as every other playback command, this silently does nothing if there's no session or
+    /// the source app doesn't support it.</summary>
+    private void ApplyBlanked(bool blanked)
+    {
+        if (blanked)
+        {
+            _pausedByBlank = _lastNowPlayingInfo?.IsPlaying == true;
+            if (_pausedByBlank)
+            {
+                _ = _nowPlayingService.PauseAsync();
+            }
+        }
+        else if (_pausedByBlank)
+        {
+            _pausedByBlank = false;
+            _ = _nowPlayingService.ResumeAsync();
+        }
+
+        _isBlanked = blanked;
+        _displayWindow.SetBlanked(blanked);
+        PreviewView.SetBlanked(blanked);
+        _ndiOutputService.SetBlanked(blanked);
     }
 
     private void OnDisplayDismissedByUser() => Dispatcher.Invoke(() => SetDisplayVisible(false));
