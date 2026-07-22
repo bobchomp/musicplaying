@@ -242,6 +242,14 @@ public partial class NowPlayingView : UserControl
         ClockPanel.Visibility = edgeClockVisible ? Visibility.Visible : Visibility.Collapsed;
         SidePanel.Visibility = equalizerVisible || edgeClockVisible ? Visibility.Visible : Visibility.Collapsed;
 
+        // Centered has no side panel to show a clock in, so it gets this bottom-anchored one
+        // instead, in the same spot whether it's showing because nothing's playing or because the
+        // screen is blanked — computed here, above the blanked/idle branches below, so it stays in
+        // that exact same place either way rather than only appearing for one of the two.
+        IdleClockPanel.Visibility = _showClock && !onEdgeLayout && (_isBlanked || !hasTrack)
+            ? Visibility.Visible
+            : Visibility.Collapsed;
+
         if (_isBlanked)
         {
             // Deliberately not touching the title scroll here: ContentPanel is hidden either way,
@@ -257,10 +265,6 @@ public partial class NowPlayingView : UserControl
         {
             ContentPanel.Visibility = Visibility.Collapsed;
             IdlePanel.Visibility = Visibility.Visible;
-
-            // Centered has no side panel to show a clock in, so give it one here instead — only
-            // while idle, since once art/title are on screen there's no room for it.
-            IdleClockPanel.Visibility = _showClock && !onEdgeLayout ? Visibility.Visible : Visibility.Collapsed;
             AnimateBackgroundTo(IdleBackgroundColor);
             return;
         }
