@@ -41,6 +41,10 @@ public partial class NowPlayingView : UserControl
         Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
         "MusicDisplay",
         "title-scroll-debug.log");
+    private static readonly string LyricsTickerDebugLogPath = Path.Combine(
+        Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+        "MusicDisplay",
+        "lyrics-ticker-debug.log");
 
     private NowPlayingInfo? _lastInfo;
     private bool _isBlanked;
@@ -448,6 +452,24 @@ public partial class NowPlayingView : UserControl
         TitleText.BeginAnimation(Canvas.LeftProperty, animation);
     }
 
+    private static void LogLyricsTickerDebug(string message)
+    {
+        try
+        {
+            var dir = Path.GetDirectoryName(LyricsTickerDebugLogPath);
+            if (!string.IsNullOrEmpty(dir))
+            {
+                Directory.CreateDirectory(dir);
+            }
+
+            File.AppendAllText(LyricsTickerDebugLogPath, $"{DateTime.Now:HH:mm:ss.fff} {message}{Environment.NewLine}");
+        }
+        catch (Exception)
+        {
+            // Best-effort diagnostic logging; nothing actionable if this fails.
+        }
+    }
+
     private static void LogTitleScrollDebug(string message)
     {
         try
@@ -552,6 +574,9 @@ public partial class NowPlayingView : UserControl
         int previousIndex = _currentLyricIndex;
         _currentLyricIndex = index;
         CurrentLyricText.Text = index >= 0 ? _lyrics[index].Text : string.Empty;
+        LogLyricsTickerDebug(
+            $"[{_instanceId}] index {previousIndex} -> {index} of {_lyrics.Count} " +
+            $"nextText=\"{EdgeLyricLineOrEmpty(index + 1)}\" edgeVisible={EdgeLyricsPanel.Visibility} sliding={_edgeLyricsSliding}");
         AdvanceEdgeLyrics(previousIndex, index);
     }
 
@@ -573,6 +598,11 @@ public partial class NowPlayingView : UserControl
         EdgeLyricSlot4.Text = EdgeLyricLineOrEmpty(index + 2);
         EdgeLyricsTransform.BeginAnimation(TranslateTransform.YProperty, null);
         EdgeLyricsTransform.Y = -EdgeLyricLineHeight;
+        LogLyricsTickerDebug(
+            $"[{_instanceId}] SetEdgeLyricsWindow({index}) slot0=\"{EdgeLyricSlot0.Text}\" slot1=\"{EdgeLyricSlot1.Text}\" " +
+            $"slot2=\"{EdgeLyricSlot2.Text}\" slot3=\"{EdgeLyricSlot3.Text}\" slot4=\"{EdgeLyricSlot4.Text}\" " +
+            $"transformY={EdgeLyricsTransform.Y} panelWidth={EdgeLyricsPanel.ActualWidth:0.#} panelHeight={EdgeLyricsPanel.ActualHeight:0.#} " +
+            $"stackWidth={EdgeLyricsStack.ActualWidth:0.#} stackHeight={EdgeLyricsStack.ActualHeight:0.#}");
     }
 
     /// <summary>Slides the edge lyrics ticker up by one line when the line advances normally, so
@@ -588,10 +618,13 @@ public partial class NowPlayingView : UserControl
         bool simpleForwardStep = previousIndex >= 0 && newIndex == previousIndex + 1;
         if (!simpleForwardStep || _edgeLyricsSliding)
         {
+            LogLyricsTickerDebug(
+                $"[{_instanceId}] AdvanceEdgeLyrics jump (simpleForwardStep={simpleForwardStep} alreadySliding={_edgeLyricsSliding})");
             SetEdgeLyricsWindow(newIndex);
             return;
         }
 
+        LogLyricsTickerDebug($"[{_instanceId}] AdvanceEdgeLyrics slide starting");
         _edgeLyricsSliding = true;
         var animation = new DoubleAnimation
         {
