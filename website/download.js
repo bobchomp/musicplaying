@@ -6,6 +6,7 @@
   const buttonEl = document.getElementById("download-button");
   const metaEl = document.getElementById("download-meta");
   const errorEl = document.getElementById("download-error");
+  const errorDetailEl = document.getElementById("download-error-detail");
 
   function formatBytes(bytes) {
     if (!bytes && bytes !== 0) {
@@ -27,15 +28,21 @@
     }
   }
 
-  function showError() {
+  function showError(detail) {
     versionEl.textContent = "Couldn't check the latest version automatically.";
+    if (errorDetailEl) {
+      errorDetailEl.textContent = detail || "";
+    }
     errorEl.style.display = "block";
   }
 
   fetch(API_URL, { headers: { Accept: "application/vnd.github+json" } })
     .then((response) => {
       if (!response.ok) {
-        throw new Error(`GitHub API responded ${response.status}`);
+        if (response.status === 403 || response.status === 429) {
+          throw new Error("GitHub's public API is rate-limited — try again in a few minutes.");
+        }
+        throw new Error(`GitHub API responded with status ${response.status}.`);
       }
       return response.json();
     })
@@ -60,7 +67,10 @@
       }
       metaEl.textContent = metaParts.join(" · ");
     })
-    .catch(() => {
-      showError();
+    .catch((err) => {
+      const detail = err instanceof TypeError
+        ? "Network error — couldn't reach api.github.com."
+        : err && err.message;
+      showError(detail);
     });
 })();
