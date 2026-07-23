@@ -41,6 +41,12 @@ public partial class ControlPanelWindow : Window
 
         _settings = SettingsService.Load();
 
+        // As early as possible, and regardless of whether/when Show Display ever gets clicked:
+        // Show Music Video needs DisplayWindow's whole content tree (in particular its
+        // MusicVideoPlayerView) to have already been through a real WPF layout pass, which
+        // doesn't happen for a window that's never actually been realized.
+        _displayWindow.EnsureRealized();
+
         PopulateMonitors();
         InitializeLayoutSelection();
         StartWithWindowsCheckBox.IsChecked = AutostartService.IsEnabled();
@@ -282,17 +288,13 @@ public partial class ControlPanelWindow : Window
         LogMusicVideoDebug($"DisplayWindow playback started={displayStarted}");
 
         LogMusicVideoDebug("starting playback on preview");
-        // Must flip to Visible before PlayAsync, not after: WebView2 needs a real, laid-out
-        // window to initialize against, and calling it while still Collapsed hangs forever
-        // instead of throwing (see DisplayWindow.ShowMusicVideoAsync for the same fix).
-        PreviewView.Visibility = Visibility.Collapsed;
-        PreviewMusicVideo.Visibility = Visibility.Visible;
         bool previewStarted = await PreviewMusicVideo.PlayAsync(videoId);
         LogMusicVideoDebug($"preview playback started={previewStarted}");
-        if (!previewStarted)
+        if (previewStarted)
         {
-            PreviewMusicVideo.Visibility = Visibility.Collapsed;
-            PreviewView.Visibility = Visibility.Visible;
+            PreviewView.Visibility = Visibility.Collapsed;
+            PreviewMusicVideo.Opacity = 1;
+            PreviewMusicVideo.IsHitTestVisible = true;
         }
 
         if (!displayStarted && !previewStarted)
@@ -326,7 +328,8 @@ public partial class ControlPanelWindow : Window
 
         await _displayWindow.HideMusicVideoAsync();
 
-        PreviewMusicVideo.Visibility = Visibility.Collapsed;
+        PreviewMusicVideo.Opacity = 0;
+        PreviewMusicVideo.IsHitTestVisible = false;
         PreviewView.Visibility = Visibility.Visible;
         await PreviewMusicVideo.StopAsync();
 
