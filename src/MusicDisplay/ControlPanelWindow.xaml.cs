@@ -1,3 +1,4 @@
+using System.IO;
 using System.Windows;
 using MusicDisplay.Services;
 using WinForms = System.Windows.Forms;
@@ -244,13 +245,22 @@ public partial class ControlPanelWindow : Window
             return;
         }
 
+        // Read (and save) the key straight from the field rather than trusting _settings is
+        // already up to date — LostFocus is what normally saves it, and clicking this button
+        // without ever leaving the field first (type key, click button, no tab/click-away in
+        // between) would otherwise silently search with an empty key and look identical to
+        // "no video found" or, worse, just not obviously explain why nothing happened.
+        ApplyYouTubeApiKey();
+
         MusicVideoButton.IsEnabled = false;
         MusicVideoStatusText.Text = "Looking for a music video…";
+        LogMusicVideoDebug($"StartMusicVideoAsync: title=\"{info.Title}\" artist=\"{info.Artist}\" isPlaying={info.IsPlaying}");
 
         var videoId = await _youTubeService.FindMusicVideoIdAsync(info.Title, info.Artist, _settings.YouTubeApiKey);
+        LogMusicVideoDebug($"search returned videoId={(videoId ?? "null")}");
         if (videoId == null)
         {
-            MusicVideoStatusText.Text = "No music video found for this track.";
+            MusicVideoStatusText.Text = "No music video found for this track — see %AppData%\\MusicDisplay\\youtube-debug.log for details.";
             MusicVideoButton.IsEnabled = true;
             return;
         }
@@ -262,11 +272,18 @@ public partial class ControlPanelWindow : Window
         _pausedByMusicVideo = info.IsPlaying;
         if (_pausedByMusicVideo)
         {
+            LogMusicVideoDebug("pausing real playback before showing video");
             await _nowPlayingService.PauseAsync();
+            LogMusicVideoDebug("pause command completed");
         }
 
+        LogMusicVideoDebug("starting playback on DisplayWindow");
         bool displayStarted = await _displayWindow.ShowMusicVideoAsync(videoId);
+        LogMusicVideoDebug($"DisplayWindow playback started={displayStarted}");
+
+        LogMusicVideoDebug("starting playback on preview");
         bool previewStarted = await PreviewMusicVideo.PlayAsync(videoId);
+        LogMusicVideoDebug($"preview playback started={previewStarted}");
         if (previewStarted)
         {
             PreviewView.Visibility = Visibility.Collapsed;
@@ -275,7 +292,7 @@ public partial class ControlPanelWindow : Window
 
         if (!displayStarted && !previewStarted)
         {
-            MusicVideoStatusText.Text = "Couldn't start video playback — is the WebView2 Runtime installed?";
+            MusicVideoStatusText.Text = "Couldn't start video playback — is the WebView2 Runtime installed? See %AppData%\\MusicDisplay\\music-video-debug.log for details.";
             MusicVideoButton.IsEnabled = true;
             if (_pausedByMusicVideo)
             {
@@ -291,10 +308,12 @@ public partial class ControlPanelWindow : Window
         MusicVideoButton.Content = "Stop Music Video";
         MusicVideoButton.IsEnabled = true;
         MusicVideoStatusText.Text = "Playing music video.";
+        LogMusicVideoDebug("StartMusicVideoAsync done");
     }
 
     private async Task StopMusicVideoAsync()
     {
+        LogMusicVideoDebug("StopMusicVideoAsync");
         _isShowingMusicVideo = false;
         SetPlaybackButtonsEnabled(true);
         MusicVideoButton.Content = "Show Music Video";
@@ -324,6 +343,33 @@ public partial class ControlPanelWindow : Window
         PreviousButton.IsEnabled = enabled;
         PlayPauseButton.IsEnabled = enabled;
         NextButton.IsEnabled = enabled;
+    }
+
+    // Traces the Show Music Video flow step by step (search, pause, DisplayWindow, preview) —
+    // separate from YouTubeService's own youtube-debug.log (the API call specifically) and
+    // MusicVideoPlayerView's own log (WebView2 initialization specifically), so a report of it
+    // "getting stuck" shows exactly which of those three stages it never got past.
+    private static readonly string MusicVideoDebugLogPath = Path.Combine(
+        Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+        "MusicDisplay",
+        "music-video-debug.log");
+
+    private static void LogMusicVideoDebug(string message)
+    {
+        try
+        {
+            var dir = Path.GetDirectoryName(MusicVideoDebugLogPath);
+            if (!string.IsNullOrEmpty(dir))
+            {
+                Directory.CreateDirectory(dir);
+            }
+
+            File.AppendAllText(MusicVideoDebugLogPath, $"{DateTime.Now:HH:mm:ss.fff} {message}{Environment.NewLine}");
+        }
+        catch (Exception)
+        {
+            // Best-effort diagnostic logging; nothing actionable if this fails.
+        }
     }
 
     private void LayoutRadio_Checked(object sender, RoutedEventArgs e)
