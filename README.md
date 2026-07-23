@@ -83,10 +83,9 @@ elsewhere on the network:
   "NDI Webcam Video N (DirectShow)" input device, just like a real webcam.
 
 This requires the free **NDI Runtime** on the *sending* computer (this one) for the toggle to
-work at all. The installer offers to open NDI's official download page for it (skipped
-automatically if a compatible NDI Runtime is already detected) — see
-[Third-party software](#third-party-software) below. If the Network Feed checkbox is greyed out,
-the NDI Runtime isn't installed.
+work at all. The installer offers to install it for you at the end (skipped automatically if a
+compatible NDI Runtime is already detected) — see [Third-party software](#third-party-software)
+below. If the Network Feed checkbox is greyed out, the NDI Runtime isn't installed.
 
 ## Building from source
 
@@ -126,10 +125,13 @@ installer, and attaches `MusicDisplaySetup-<version>.exe` to a new GitHub Releas
 
 The Network Feed feature talks to the **NDI Runtime**, a separate free product from
 [NDI/Vizrt](https://ndi.video) under its own license — this repo doesn't bundle or redistribute
-it. The installer only offers a link to NDI's own official download
-([ndi.link/NDIRedistV6](http://ndi.link/NDIRedistV6)); Music Display never installs it silently
-or without your say-so. See NDI's [SDK licensing terms](https://docs.ndi.video/all/developing-with-ndi/sdk/licensing)
-for details.
+it. If a compatible NDI Runtime isn't already detected, the installer downloads NDI's own official
+redistributable installer ([ndi.link/NDIRedistV6](http://ndi.link/NDIRedistV6)) in the background
+during setup and offers to run it from the Finished page — left unchecked by default, so it still
+only ever runs with your explicit say-so, just without you having to go find and download it
+yourself first. If that download fails (no internet, etc.), the checkbox falls back to opening the
+same official link in a browser instead. See NDI's
+[SDK licensing terms](https://docs.ndi.video/all/developing-with-ndi/sdk/licensing) for details.
 
 The Show synced lyrics feature looks up lyrics from **[LRCLIB](https://lrclib.net)**, a free
 community lyrics database, over the internet at runtime — no lyrics are bundled with this app or
