@@ -61,14 +61,18 @@ public partial class MusicVideoPlayerView : UserControl
         // which EnsureInitializedAsync below works around via a browser-launch argument, since a
         // programmatic Navigate() here doesn't itself count as the "user gesture" Chromium's
         // heuristic looks for.
-        var html = $"""
+        // $$ (not a single $): the CSS below has literal braces of its own, and raw
+        // interpolated strings don't use brace-doubling to escape those the way regular
+        // interpolated strings do — with two $ signs, single braces are always literal and an
+        // interpolation hole needs double braces instead, which is what {{videoId}} is below.
+        var html = $$"""
             <!DOCTYPE html>
             <html><head><style>
-              html, body {{ margin: 0; background: #000; overflow: hidden; }}
-              iframe {{ position: fixed; inset: 0; width: 100%; height: 100%; border: 0; }}
+              html, body { margin: 0; background: #000; overflow: hidden; }
+              iframe { position: fixed; inset: 0; width: 100%; height: 100%; border: 0; }
             </style></head>
             <body>
-              <iframe src="https://www.youtube.com/embed/{videoId}?autoplay=1&playsinline=1"
+              <iframe src="https://www.youtube.com/embed/{{videoId}}?autoplay=1&playsinline=1"
                       allow="autoplay; encrypted-media" allowfullscreen></iframe>
             </body></html>
             """;
