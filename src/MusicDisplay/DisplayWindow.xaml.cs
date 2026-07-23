@@ -83,14 +83,21 @@ public partial class DisplayWindow : Window
     /// the normal view is left showing in that case.</summary>
     public async Task<bool> ShowMusicVideoAsync(string videoId)
     {
-        if (!await MusicVideo.PlayAsync(videoId))
+        // MusicVideo has to become Visible BEFORE PlayAsync, not after: WebView2 needs a real,
+        // laid-out window to attach to when it initializes, and calling EnsureCoreWebView2Async
+        // (inside PlayAsync) while still Collapsed doesn't throw — it just hangs forever, since a
+        // Collapsed element never gets a native window handle at all.
+        MusicVideo.Visibility = Visibility.Visible;
+        View.Visibility = Visibility.Collapsed;
+
+        if (await MusicVideo.PlayAsync(videoId))
         {
-            return false;
+            return true;
         }
 
-        View.Visibility = Visibility.Collapsed;
-        MusicVideo.Visibility = Visibility.Visible;
-        return true;
+        MusicVideo.Visibility = Visibility.Collapsed;
+        View.Visibility = Visibility.Visible;
+        return false;
     }
 
     public async Task HideMusicVideoAsync()

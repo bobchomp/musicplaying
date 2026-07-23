@@ -282,12 +282,17 @@ public partial class ControlPanelWindow : Window
         LogMusicVideoDebug($"DisplayWindow playback started={displayStarted}");
 
         LogMusicVideoDebug("starting playback on preview");
+        // Must flip to Visible before PlayAsync, not after: WebView2 needs a real, laid-out
+        // window to initialize against, and calling it while still Collapsed hangs forever
+        // instead of throwing (see DisplayWindow.ShowMusicVideoAsync for the same fix).
+        PreviewView.Visibility = Visibility.Collapsed;
+        PreviewMusicVideo.Visibility = Visibility.Visible;
         bool previewStarted = await PreviewMusicVideo.PlayAsync(videoId);
         LogMusicVideoDebug($"preview playback started={previewStarted}");
-        if (previewStarted)
+        if (!previewStarted)
         {
-            PreviewView.Visibility = Visibility.Collapsed;
-            PreviewMusicVideo.Visibility = Visibility.Visible;
+            PreviewMusicVideo.Visibility = Visibility.Collapsed;
+            PreviewView.Visibility = Visibility.Visible;
         }
 
         if (!displayStarted && !previewStarted)
