@@ -34,6 +34,10 @@
   <ItemGroup>
     <!-- System master volume control (mute/slider) via Windows Core Audio API. -->
     <PackageReference Include="NAudio" Version="2.2.1" />
+    <!-- Embeds the YouTube player for the Show Music Video feature. Requires the WebView2
+         Runtime on the end user's machine — present by default on Windows 11 and on most
+         Windows 10 installs (it ships with Edge), but not strictly guaranteed on every one. -->
+    <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.4078.44" />
   </ItemGroup>
 
 </Project>

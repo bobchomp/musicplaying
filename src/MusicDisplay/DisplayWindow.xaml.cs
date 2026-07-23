@@ -77,4 +77,26 @@ public partial class DisplayWindow : Window
     public void SetShowLyrics(bool show) => View.SetShowLyrics(show);
 
     public void UpdatePosition(PlaybackPosition? position) => View.UpdatePosition(position);
+
+    /// <summary>Switches from the normal now-playing view to a full-bleed video, with sound.
+    /// Returns false if the video couldn't be started (most likely WebView2 isn't available) —
+    /// the normal view is left showing in that case.</summary>
+    public async Task<bool> ShowMusicVideoAsync(string videoId)
+    {
+        if (!await MusicVideo.PlayAsync(videoId))
+        {
+            return false;
+        }
+
+        View.Visibility = Visibility.Collapsed;
+        MusicVideo.Visibility = Visibility.Visible;
+        return true;
+    }
+
+    public async Task HideMusicVideoAsync()
+    {
+        MusicVideo.Visibility = Visibility.Collapsed;
+        View.Visibility = Visibility.Visible;
+        await MusicVideo.StopAsync();
+    }
 }

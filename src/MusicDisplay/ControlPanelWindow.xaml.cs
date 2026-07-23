@@ -16,6 +16,7 @@ public partial class ControlPanelWindow : Window
     private readonly DisplayWindow _displayWindow = new();
     private readonly NdiOutputService _ndiOutputService = new();
     private readonly LyricsService _lyricsService = new();
+    private readonly YouTubeService _youTubeService = new();
 
     private WinForms.NotifyIcon? _trayIcon;
     private WinForms.ToolStripMenuItem? _trayToggleMenuItem;
@@ -23,6 +24,8 @@ public partial class ControlPanelWindow : Window
     private bool _isDisplayVisible;
     private bool _isBlanked;
     private bool _pausedByBlank;
+    private bool _isShowingMusicVideo;
+    private bool _pausedByMusicVideo;
     private bool _suppressMonitorSelectionHandling;
     private bool _suppressVolumeSliderHandling;
     private bool _suppressNetworkFeedHandling;
@@ -52,6 +55,7 @@ public partial class ControlPanelWindow : Window
 
         InitializeVolumeControls();
         InitializeNetworkFeed();
+        YouTubeApiKeyTextBox.Text = _settings.YouTubeApiKey;
 
         SetupTrayIcon();
 
@@ -192,6 +196,134 @@ public partial class ControlPanelWindow : Window
         _settings.NetworkFeedEnabled = actuallyEnabled;
         _settings.NetworkFeedName = name;
         SettingsService.Save(_settings);
+    }
+
+    private void YouTubeApiKeyTextBox_LostFocus(object sender, RoutedEventArgs e) => ApplyYouTubeApiKey();
+
+    private void YouTubeApiKeyTextBox_KeyDown(object sender, System.Windows.Input.KeyEventArgs e)
+    {
+        if (e.Key == System.Windows.Input.Key.Enter)
+        {
+            ApplyYouTubeApiKey();
+        }
+    }
+
+    private void ApplyYouTubeApiKey()
+    {
+        var key = YouTubeApiKeyTextBox.Text.Trim();
+        if (key == _settings.YouTubeApiKey)
+        {
+            return;
+        }
+
+        _settings.YouTubeApiKey = key;
+        SettingsService.Save(_settings);
+    }
+
+    private const string MusicVideoIdleStatus =
+        "Looks up a video for the current track on YouTube and plays it — with its own sound, "
+        + "pausing the real source until you stop it. Requires a free YouTube Data API key (see the README).";
+
+    private async void MusicVideoButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (_isShowingMusicVideo)
+        {
+            await StopMusicVideoAsync();
+        }
+        else
+        {
+            await StartMusicVideoAsync();
+        }
+    }
+
+    private async Task StartMusicVideoAsync()
+    {
+        var info = _lastNowPlayingInfo;
+        if (info == null || string.IsNullOrWhiteSpace(info.Title))
+        {
+            return;
+        }
+
+        MusicVideoButton.IsEnabled = false;
+        MusicVideoStatusText.Text = "Looking for a music video…";
+
+        var videoId = await _youTubeService.FindMusicVideoIdAsync(info.Title, info.Artist, _settings.YouTubeApiKey);
+        if (videoId == null)
+        {
+            MusicVideoStatusText.Text = "No music video found for this track.";
+            MusicVideoButton.IsEnabled = true;
+            return;
+        }
+
+        // Explicit pause (not the toggle) and only if it was actually playing, same reasoning as
+        // Blank Screen: showing a video with its own sound alongside the real track playing would
+        // be two overlapping audio streams, and toggling blind risks resuming something that was
+        // already paused before this started.
+        _pausedByMusicVideo = info.IsPlaying;
+        if (_pausedByMusicVideo)
+        {
+            await _nowPlayingService.PauseAsync();
+        }
+
+        bool displayStarted = await _displayWindow.ShowMusicVideoAsync(videoId);
+        bool previewStarted = await PreviewMusicVideo.PlayAsync(videoId);
+        if (previewStarted)
+        {
+            PreviewView.Visibility = Visibility.Collapsed;
+            PreviewMusicVideo.Visibility = Visibility.Visible;
+        }
+
+        if (!displayStarted && !previewStarted)
+        {
+            MusicVideoStatusText.Text = "Couldn't start video playback — is the WebView2 Runtime installed?";
+            MusicVideoButton.IsEnabled = true;
+            if (_pausedByMusicVideo)
+            {
+                _pausedByMusicVideo = false;
+                await _nowPlayingService.ResumeAsync();
+            }
+
+            return;
+        }
+
+        _isShowingMusicVideo = true;
+        SetPlaybackButtonsEnabled(false);
+        MusicVideoButton.Content = "Stop Music Video";
+        MusicVideoButton.IsEnabled = true;
+        MusicVideoStatusText.Text = "Playing music video.";
+    }
+
+    private async Task StopMusicVideoAsync()
+    {
+        _isShowingMusicVideo = false;
+        SetPlaybackButtonsEnabled(true);
+        MusicVideoButton.Content = "Show Music Video";
+        MusicVideoStatusText.Text = MusicVideoIdleStatus;
+
+        await _displayWindow.HideMusicVideoAsync();
+
+        PreviewMusicVideo.Visibility = Visibility.Collapsed;
+        PreviewView.Visibility = Visibility.Visible;
+        await PreviewMusicVideo.StopAsync();
+
+        if (_pausedByMusicVideo)
+        {
+            _pausedByMusicVideo = false;
+            await _nowPlayingService.ResumeAsync();
+        }
+
+        var info = _lastNowPlayingInfo;
+        MusicVideoButton.IsEnabled = info != null && !string.IsNullOrWhiteSpace(info.Title);
+    }
+
+    // Previous/Play-Pause/Next all talk to the same session Show Music Video just paused — left
+    // enabled, a click here could resume the original track while the video's own sound is also
+    // playing, or otherwise fight with the video state in confusing ways.
+    private void SetPlaybackButtonsEnabled(bool enabled)
+    {
+        PreviousButton.IsEnabled = enabled;
+        PlayPauseButton.IsEnabled = enabled;
+        NextButton.IsEnabled = enabled;
     }
 
     private void LayoutRadio_Checked(object sender, RoutedEventArgs e)
@@ -486,6 +618,13 @@ public partial class ControlPanelWindow : Window
                 : "No music detected";
 
             PlayPauseButton.Content = info?.IsPlaying == true ? "Pause" : "Play";
+
+            // Not touched while a video is showing — its Stop button stays enabled regardless of
+            // what the (paused) real session reports in the meantime.
+            if (!_isShowingMusicVideo)
+            {
+                MusicVideoButton.IsEnabled = info != null && !string.IsNullOrWhiteSpace(info.Title);
+            }
         });
     }
 

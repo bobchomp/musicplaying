@@ -63,6 +63,14 @@ No admin rights needed.
     whether or not the fullscreen display is up on this machine. Changing the name while
     broadcasting restarts the feed under the new name. See below for what's needed on the
     receiving computer.
+13. With a **YouTube Data API key** entered (see below), click **Show Music Video** to look up a
+    video for the current track on YouTube and play it — full-bleed, with its own sound — on both
+    the fullscreen display and the preview. This pauses whatever was actually playing for as long
+    as the video is up (there's no way to keep a music video's own audio in sync with a live
+    playback position, so this replaces it rather than trying to). Previous/Play/Next are disabled
+    while a video is showing, since they'd otherwise resume the paused source underneath it. Click
+    **Stop Music Video** to close it and resume where the real track left off (only if this
+    feature was the one that paused it).
 
 The menu bar also has **View** (Show/Hide Display, Blank Screen — the same actions as the buttons
 below), **Settings > Open Settings Folder** (jumps straight to where `settings.json` lives), and
@@ -86,6 +94,27 @@ This requires the free **NDI Runtime** on the *sending* computer (this one) for 
 work at all. The installer offers to install it for you at the end (skipped automatically if a
 compatible NDI Runtime is already detected) — see [Third-party software](#third-party-software)
 below. If the Network Feed checkbox is greyed out, the NDI Runtime isn't installed.
+
+**Note:** the network feed doesn't currently reflect Show Music Video — it keeps showing whatever
+it last captured (the paused track's now-playing screen) for the duration of the video, since the
+video player isn't something the feed's normal capture method can see. A real fix for this is a
+known gap, not yet built.
+
+### Setting up Show Music Video
+
+This feature needs your own free **YouTube Data API key**, since there's no responsible way to
+search YouTube for the right video without one:
+
+1. Create a project in the [Google Cloud Console](https://console.cloud.google.com/) (free).
+2. Enable the **YouTube Data API v3** for that project.
+3. Create an API key under **Credentials** and paste it into the **YouTube Data API key** field
+   under Music Video in the control panel.
+
+The free tier is 10,000 units/day and each search costs 100, so about 100 searches a day before
+you'd hit the quota — more than enough for normal use. It also needs the
+[WebView2 Runtime](https://developer.microsoft.com/microsoft-edge/webview2/), which ships with
+Windows 11 and most Windows 10 installs already (Edge uses it); if it's missing, Show Music Video
+will report that it couldn't start playback.
 
 ## Building from source
 
@@ -138,11 +167,17 @@ community lyrics database, over the internet at runtime — no lyrics are bundle
 this repo. As noted above, displaying lyrics publicly is your responsibility to license (e.g. via
 CCLI), not something this app manages.
 
+The Show Music Video feature searches and plays videos via the **YouTube Data API** and an
+embedded **[WebView2](https://developer.microsoft.com/microsoft-edge/webview2/)** browser control
+(Microsoft, ships with Windows), using your own API key — no video content is bundled with this
+app or this repo, and nothing is downloaded, only streamed via YouTube's own player. As with
+lyrics, you're responsible for whatever public-display licensing a shown music video may require.
+
 ## License
 
 MIT — see [LICENSE](LICENSE). This covers this repo's own source code; the third-party
-components listed above (NDI Runtime, LRCLIB, the bundled Poppins font) remain under their own
-licenses.
+components listed above (NDI Runtime, LRCLIB, YouTube/WebView2, the bundled Poppins font) remain
+under their own licenses.
 
 ## Project layout
 
@@ -152,8 +187,10 @@ src/MusicDisplay/
   ControlPanelWindow.xaml(.cs) monitor picker, show/hide, tray icon, autostart toggle, menu,
                                and an embedded live preview (hosts a NowPlayingView)
   CloseConfirmationWindow.xaml(.cs) minimize-to-tray vs exit prompt shown on window close
-  DisplayWindow.xaml(.cs)      the fullscreen now-playing screen (hosts NowPlayingView)
+  DisplayWindow.xaml(.cs)      the fullscreen now-playing screen (hosts NowPlayingView and,
+                               toggled on top of it, a MusicVideoPlayerView)
   NowPlayingView.xaml(.cs)     shared album art / title / artist visual, equalizer bars, clock
+  MusicVideoPlayerView.xaml(.cs) WebView2-hosted YouTube player for Show Music Video
   Services/
     NowPlayingService.cs      reads title/artist/artwork via Windows SMTC
     ColorExtractor.cs         picks a background accent color from the album art
@@ -166,6 +203,7 @@ src/MusicDisplay/
     LyricsService.cs          fetches + parses synced lyrics from LRCLIB
     LyricsLine.cs             one timestamped line of synced lyrics
     PlaybackPosition.cs       playback-position snapshot used to sync lyrics to position
+    YouTubeService.cs         searches the YouTube Data API for a track's music video
   Resources/Fonts/            embedded Poppins font files (OFL licensed, see OFL.txt)
 installer/installer.iss       Inno Setup installer script
 ```
