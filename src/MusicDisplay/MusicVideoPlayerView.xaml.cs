@@ -38,6 +38,11 @@ public partial class MusicVideoPlayerView : UserControl
 
     private string WrapperFileName => $"player-{_instanceId}.html";
 
+    /// <summary>Raised when the video finishes playing on its own (not when Stop is clicked) —
+    /// the JS side posts a "ended" web message on the YouTube IFrame Player API's onStateChange,
+    /// which WebMessageReceived below turns into this.</summary>
+    public event Action? VideoEnded;
+
     public MusicVideoPlayerView()
     {
         InitializeComponent();
@@ -56,24 +61,42 @@ public partial class MusicVideoPlayerView : UserControl
             return false;
         }
 
-        // playsinline avoids the mobile-style fullscreen takeover Chromium sometimes applies;
-        // autoplay is otherwise blocked for unmuted video by Chromium's default autoplay policy,
-        // which EnsureInitializedAsync below works around via a browser-launch argument, since a
-        // programmatic Navigate() here doesn't itself count as the "user gesture" Chromium's
-        // heuristic looks for.
-        // $$ (not a single $): the CSS below has literal braces of its own, and raw
-        // interpolated strings don't use brace-doubling to escape those the way regular
-        // interpolated strings do — with two $ signs, single braces are always literal and an
-        // interpolation hole needs double braces instead, which is what {{videoId}} is below.
+        // Built via the YouTube IFrame Player API (a JS API that creates its own iframe
+        // internally), not a plain <iframe src="..."> — that's the only way to get an
+        // onStateChange callback, which is how VideoEnded below knows when the video actually
+        // finishes rather than the app having no idea at all. playsinline avoids the mobile-style
+        // fullscreen takeover Chromium sometimes applies; autoplay is otherwise blocked for
+        // unmuted video by Chromium's default autoplay policy, which EnsureInitializedAsync below
+        // works around via a browser-launch argument, since nothing here counts as the "user
+        // gesture" Chromium's heuristic looks for. $$ (not a single $): the CSS/JS below has
+        // literal braces of their own, and raw interpolated strings don't use brace-doubling to
+        // escape those the way regular interpolated strings do — with two $ signs, single braces
+        // are always literal and an interpolation hole needs double braces instead, which is what
+        // {{videoId}} is below.
         var html = $$"""
             <!DOCTYPE html>
             <html><head><style>
               html, body { margin: 0; background: #000; overflow: hidden; }
-              iframe { position: fixed; inset: 0; width: 100%; height: 100%; border: 0; }
+              #player { position: fixed; inset: 0; width: 100%; height: 100%; }
             </style></head>
             <body>
-              <iframe src="https://www.youtube.com/embed/{{videoId}}?autoplay=1&playsinline=1"
-                      allow="autoplay; encrypted-media" allowfullscreen></iframe>
+              <div id="player"></div>
+              <script src="https://www.youtube.com/iframe_api"></script>
+              <script>
+                function onYouTubeIframeAPIReady() {
+                  new YT.Player('player', {
+                    videoId: '{{videoId}}',
+                    playerVars: { autoplay: 1, playsinline: 1 },
+                    events: {
+                      onStateChange: function (event) {
+                        if (event.data === YT.PlayerState.ENDED) {
+                          window.chrome.webview.postMessage('ended');
+                        }
+                      }
+                    }
+                  });
+                }
+              </script>
             </body></html>
             """;
         await File.WriteAllTextAsync(Path.Combine(WrapperFolder, WrapperFileName), html);
@@ -126,6 +149,19 @@ public partial class MusicVideoPlayerView : UserControl
             Browser.CoreWebView2!.SetVirtualHostNameToFolderMapping(
                 VirtualHost, WrapperFolder, CoreWebView2HostResourceAccessKind.Allow);
             Log($"virtual host mapping set: {VirtualHost} -> {WrapperFolder}");
+
+            // Only ever reached once per instance, since Browser.CoreWebView2 is non-null on
+            // every call after this one — the "ended" message the wrapper HTML's onStateChange
+            // posts (see PlayAsync) is how VideoEnded gets raised.
+            Browser.CoreWebView2.WebMessageReceived += (_, args) =>
+            {
+                var message = args.TryGetWebMessageAsString();
+                Log($"WebMessageReceived: {message}");
+                if (message == "ended")
+                {
+                    VideoEnded?.Invoke();
+                }
+            };
 
             return true;
         }

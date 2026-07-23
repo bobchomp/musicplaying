@@ -67,6 +67,7 @@ public partial class ControlPanelWindow : Window
         SetupTrayIcon();
 
         _displayWindow.DismissedByUser += OnDisplayDismissedByUser;
+        _displayWindow.MusicVideoEnded += () => _ = StopMusicVideoAsync();
         _nowPlayingService.NowPlayingChanged += OnNowPlayingChanged;
 
         Loaded += async (_, _) => await _nowPlayingService.StartAsync();
@@ -293,8 +294,7 @@ public partial class ControlPanelWindow : Window
         if (previewStarted)
         {
             PreviewView.Visibility = Visibility.Collapsed;
-            PreviewMusicVideo.Opacity = 1;
-            PreviewMusicVideo.IsHitTestVisible = true;
+            PreviewMusicVideo.Visibility = Visibility.Visible;
         }
 
         if (!displayStarted && !previewStarted)
@@ -320,6 +320,14 @@ public partial class ControlPanelWindow : Window
 
     private async Task StopMusicVideoAsync()
     {
+        // Guards against double-handling: this runs both when the user clicks Stop and when
+        // MusicVideoEnded fires on its own, and there's nothing stopping both from happening
+        // close together (e.g. the video finishes right as someone clicks Stop).
+        if (!_isShowingMusicVideo)
+        {
+            return;
+        }
+
         LogMusicVideoDebug("StopMusicVideoAsync");
         _isShowingMusicVideo = false;
         SetPlaybackButtonsEnabled(true);
@@ -328,8 +336,7 @@ public partial class ControlPanelWindow : Window
 
         await _displayWindow.HideMusicVideoAsync();
 
-        PreviewMusicVideo.Opacity = 0;
-        PreviewMusicVideo.IsHitTestVisible = false;
+        PreviewMusicVideo.Visibility = Visibility.Hidden;
         PreviewView.Visibility = Visibility.Visible;
         await PreviewMusicVideo.StopAsync();
 
