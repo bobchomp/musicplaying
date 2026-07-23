@@ -18,12 +18,25 @@ public partial class MusicVideoPlayerView : UserControl
         "MusicDisplay",
         "music-video-debug.log");
 
+    // YouTube's embed player expects to be running inside an <iframe> on a page with a real
+    // HTTPS origin — its internal checks fail (YouTube's own "video player configuration error",
+    // error 153) if it's loaded as a top-level navigation instead, which is what a plain
+    // Navigate() straight to the embed URL does. SetVirtualHostNameToFolderMapping below serves a
+    // small local HTML wrapper (with the video in an iframe, same as any normal embedding site)
+    // from what WebView2 treats as a genuine https:// origin, even though it's actually reading
+    // from a folder on disk.
+    private const string VirtualHost = "musicdisplay.local";
+    private static readonly string WrapperFolder = Path.Combine(Path.GetTempPath(), "MusicDisplayVideoPlayer");
+
     private CoreWebView2Environment? _environment;
 
     // DisplayWindow and ControlPanelWindow's embedded preview each own a separate instance of
-    // this control, both logging to the same music-video-debug.log — without this, it's
-    // impossible to tell from the log alone which of the two a given line belongs to.
+    // this control. Used both to tag debug log lines (both instances log to the same
+    // music-video-debug.log) and to give each instance its own wrapper HTML filename, so one
+    // instance writing/navigating can never race the other's file out from under it.
     private readonly string _instanceId = Guid.NewGuid().ToString("N")[..6];
+
+    private string WrapperFileName => $"player-{_instanceId}.html";
 
     public MusicVideoPlayerView()
     {
@@ -48,7 +61,20 @@ public partial class MusicVideoPlayerView : UserControl
         // which EnsureInitializedAsync below works around via a browser-launch argument, since a
         // programmatic Navigate() here doesn't itself count as the "user gesture" Chromium's
         // heuristic looks for.
-        var url = $"https://www.youtube.com/embed/{videoId}?autoplay=1&playsinline=1";
+        var html = $"""
+            <!DOCTYPE html>
+            <html><head><style>
+              html, body {{ margin: 0; background: #000; overflow: hidden; }}
+              iframe {{ position: fixed; inset: 0; width: 100%; height: 100%; border: 0; }}
+            </style></head>
+            <body>
+              <iframe src="https://www.youtube.com/embed/{videoId}?autoplay=1&playsinline=1"
+                      allow="autoplay; encrypted-media" allowfullscreen></iframe>
+            </body></html>
+            """;
+        await File.WriteAllTextAsync(Path.Combine(WrapperFolder, WrapperFileName), html);
+
+        var url = $"https://{VirtualHost}/{WrapperFileName}";
         Log($"navigating to {url}");
         Browser.CoreWebView2!.Navigate(url);
         return true;
@@ -91,6 +117,12 @@ public partial class MusicVideoPlayerView : UserControl
             Log("EnsureCoreWebView2Async starting...");
             await Browser.EnsureCoreWebView2Async(_environment);
             Log("EnsureCoreWebView2Async completed");
+
+            Directory.CreateDirectory(WrapperFolder);
+            Browser.CoreWebView2!.SetVirtualHostNameToFolderMapping(
+                VirtualHost, WrapperFolder, CoreWebView2HostResourceAccessKind.Allow);
+            Log($"virtual host mapping set: {VirtualHost} -> {WrapperFolder}");
+
             return true;
         }
         catch (Exception ex)
