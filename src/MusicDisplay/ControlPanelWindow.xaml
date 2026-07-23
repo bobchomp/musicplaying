@@ -229,7 +229,8 @@
             <Border Grid.Column="1" Background="Black" BorderThickness="1,0,0,0" BorderBrush="#22808080">
                 <Grid>
                     <local:NowPlayingView x:Name="PreviewView" />
-                    <local:MusicVideoPlayerView x:Name="PreviewMusicVideo" Visibility="Collapsed" />
+                    <!-- Opacity, not Visibility — see the matching comment in DisplayWindow.xaml. -->
+                    <local:MusicVideoPlayerView x:Name="PreviewMusicVideo" Opacity="0" IsHitTestVisible="False" />
                 </Grid>
             </Border>
         </Grid>

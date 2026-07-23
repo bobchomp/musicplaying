@@ -41,6 +41,12 @@ public partial class ControlPanelWindow : Window
 
         _settings = SettingsService.Load();
 
+        // As early as possible, and regardless of whether/when Show Display ever gets clicked:
+        // Show Music Video needs DisplayWindow's whole content tree (in particular its
+        // MusicVideoPlayerView) to have already been through a real WPF layout pass, which
+        // doesn't happen for a window that's never actually been realized.
+        _displayWindow.EnsureRealized();
+
         PopulateMonitors();
         InitializeLayoutSelection();
         StartWithWindowsCheckBox.IsChecked = AutostartService.IsEnabled();
@@ -287,7 +293,8 @@ public partial class ControlPanelWindow : Window
         if (previewStarted)
         {
             PreviewView.Visibility = Visibility.Collapsed;
-            PreviewMusicVideo.Visibility = Visibility.Visible;
+            PreviewMusicVideo.Opacity = 1;
+            PreviewMusicVideo.IsHitTestVisible = true;
         }
 
         if (!displayStarted && !previewStarted)
@@ -321,7 +328,8 @@ public partial class ControlPanelWindow : Window
 
         await _displayWindow.HideMusicVideoAsync();
 
-        PreviewMusicVideo.Visibility = Visibility.Collapsed;
+        PreviewMusicVideo.Opacity = 0;
+        PreviewMusicVideo.IsHitTestVisible = false;
         PreviewView.Visibility = Visibility.Visible;
         await PreviewMusicVideo.StopAsync();
 

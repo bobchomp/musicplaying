@@ -12,6 +12,10 @@
 
     <Grid>
         <local:NowPlayingView x:Name="View" />
-        <local:MusicVideoPlayerView x:Name="MusicVideo" Visibility="Collapsed" />
+        <!-- Opacity, not Visibility, controls whether this is shown — it needs to stay part of
+             layout at all times (Collapsed elements never get a real, laid-out window for WebView2
+             to attach to) so it's already fully initialized well before Show Music Video is ever
+             clicked, rather than racing a layout pass that hasn't happened yet. -->
+        <local:MusicVideoPlayerView x:Name="MusicVideo" Opacity="0" IsHitTestVisible="False" />
     </Grid>
 </Window>

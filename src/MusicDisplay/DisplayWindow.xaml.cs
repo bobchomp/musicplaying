@@ -83,20 +83,31 @@ public partial class DisplayWindow : Window
     /// the normal view is left showing in that case.</summary>
     public async Task<bool> ShowMusicVideoAsync(string videoId)
     {
-        if (!await MusicVideo.PlayAsync(videoId))
+        if (await MusicVideo.PlayAsync(videoId))
         {
-            return false;
+            View.Visibility = Visibility.Collapsed;
+            MusicVideo.Opacity = 1;
+            MusicVideo.IsHitTestVisible = true;
+            return true;
         }
 
-        View.Visibility = Visibility.Collapsed;
-        MusicVideo.Visibility = Visibility.Visible;
-        return true;
+        return false;
     }
 
     public async Task HideMusicVideoAsync()
     {
-        MusicVideo.Visibility = Visibility.Collapsed;
+        MusicVideo.Opacity = 0;
+        MusicVideo.IsHitTestVisible = false;
         View.Visibility = Visibility.Visible;
         await MusicVideo.StopAsync();
     }
+
+    /// <summary>Forces this window's underlying native window handle to exist — without making
+    /// it visible — so its whole content tree (in particular MusicVideo) has already been through
+    /// a real WPF layout pass, and WebView2 has something to attach to, well before Show Music
+    /// Video might be clicked. Without this, if the fullscreen display has never actually been
+    /// shown on a monitor (Show Display never clicked), this window's content has never been laid
+    /// out at all — no amount of juggling MusicVideo's own Visibility/Opacity fixes that, since
+    /// the problem in that case is the whole window, not just one control in it.</summary>
+    public void EnsureRealized() => new WindowInteropHelper(this).EnsureHandle();
 }
