@@ -30,7 +30,14 @@ public sealed class NdiOutputService : IDisposable
     private readonly NowPlayingView _captureView = new();
     private readonly DispatcherTimer _timer;
     private readonly RenderTargetBitmap _renderTarget = new(Width, Height, 96, 96, PixelFormats.Pbgra32);
-    private readonly IntPtr _pixelBuffer = Marshal.AllocHGlobal(BufferSize);
+
+    // Two buffers, alternated each frame, because frames are sent with the async NDI API below —
+    // it returns immediately rather than blocking until the frame is actually transmitted, so the
+    // buffer just sent can still be in use by the SDK when the next tick comes around. Writing
+    // into the buffer NOT currently in flight avoids ever touching one out from under it.
+    private readonly IntPtr _pixelBufferA = Marshal.AllocHGlobal(BufferSize);
+    private readonly IntPtr _pixelBufferB = Marshal.AllocHGlobal(BufferSize);
+    private bool _useBufferA = true;
 
     private IntPtr _sendInstance = IntPtr.Zero;
     private IntPtr _sourceNamePtr = IntPtr.Zero;
@@ -49,7 +56,13 @@ public sealed class NdiOutputService : IDisposable
         _captureView.Measure(new Size(Width, Height));
         _captureView.Arrange(new Rect(0, 0, Width, Height));
 
-        _timer = new DispatcherTimer(DispatcherPriority.Background)
+        // Render rather than Background: this timer competes for the same UI thread as the
+        // equalizer/title-scroll animations and the control panel's own event handlers, and
+        // Background priority meant it could keep getting pushed behind a backlog of that other
+        // work, arriving at uneven intervals and reading as jitter in the output — Render is the
+        // same priority WPF's own layout/render passes use, which keeps this ticking close to
+        // every frame instead of only whenever the queue happens to run dry.
+        _timer = new DispatcherTimer(DispatcherPriority.Render)
         {
             Interval = TimeSpan.FromSeconds(1.0 / FrameRate),
         };
@@ -141,6 +154,10 @@ public sealed class NdiOutputService : IDisposable
 
         if (_sendInstance != IntPtr.Zero)
         {
+            // Waits for any in-flight async frame to actually finish sending, so neither buffer
+            // is still in use by the SDK by the time NDIlib_send_destroy (or eventually Dispose's
+            // Marshal.FreeHGlobal) runs.
+            NdiInterop.NDIlib_send_send_video_async_v2_Flush(_sendInstance, IntPtr.Zero);
             NdiInterop.NDIlib_send_destroy(_sendInstance);
             _sendInstance = IntPtr.Zero;
         }
@@ -166,7 +183,10 @@ public sealed class NdiOutputService : IDisposable
             // NowPlayingView's background is always fully opaque, so re-rendering onto the same
             // target every tick fully overwrites the previous frame with no need to clear first.
             _renderTarget.Render(_captureView);
-            _renderTarget.CopyPixels(new Int32Rect(0, 0, Width, Height), _pixelBuffer, BufferSize, Stride);
+
+            var buffer = _useBufferA ? _pixelBufferA : _pixelBufferB;
+            _useBufferA = !_useBufferA;
+            _renderTarget.CopyPixels(new Int32Rect(0, 0, Width, Height), buffer, BufferSize, Stride);
 
             var frame = new NdiInterop.VideoFrame
             {
@@ -178,13 +198,18 @@ public sealed class NdiOutputService : IDisposable
                 PictureAspectRatio = (float)Width / Height,
                 FrameFormatType = NdiInterop.FrameFormatProgressive,
                 Timecode = NdiInterop.SynthesizeTimecode,
-                PData = _pixelBuffer,
+                PData = buffer,
                 LineStrideInBytes = Stride,
                 PMetadata = IntPtr.Zero,
                 Timestamp = NdiInterop.SynthesizeTimecode,
             };
 
-            NdiInterop.NDIlib_send_send_video_v2(_sendInstance, ref frame);
+            // Async rather than the plain v2 call: that one blocks this (UI) thread until the
+            // frame is actually transmitted, which can take an unpredictable amount of time
+            // depending on the receiver/network — exactly the kind of stall that reads as jitter,
+            // and on the same thread the rest of the app's animations depend on. This queues the
+            // frame and returns immediately; the buffer alternation above keeps that safe.
+            NdiInterop.NDIlib_send_send_video_async_v2(_sendInstance, ref frame);
         }
         catch (Exception)
         {
@@ -201,7 +226,8 @@ public sealed class NdiOutputService : IDisposable
 
         _isDisposed = true;
         Stop();
-        Marshal.FreeHGlobal(_pixelBuffer);
+        Marshal.FreeHGlobal(_pixelBufferA);
+        Marshal.FreeHGlobal(_pixelBufferB);
 
         if (_hasInitialized)
         {
