@@ -115,4 +115,17 @@ internal static class NdiInterop
 
     [DllImport(LibraryName, CallingConvention = CallingConvention.Cdecl)]
     public static extern void NDIlib_send_send_video_v2(IntPtr instance, ref VideoFrame videoData);
+
+    /// <summary>Queues a frame and returns immediately rather than blocking until it's actually
+    /// transmitted — the caller must not touch that frame's buffer again until either the next
+    /// async send call or the flush overload below, which is why NdiOutputService alternates
+    /// between two buffers rather than reusing one.</summary>
+    [DllImport(LibraryName, CallingConvention = CallingConvention.Cdecl, EntryPoint = "NDIlib_send_send_video_async_v2")]
+    public static extern void NDIlib_send_send_video_async_v2(IntPtr instance, ref VideoFrame videoData);
+
+    /// <summary>Same native entry point as above with a null frame pointer, which per the SDK
+    /// blocks until any in-flight async frame has finished sending — used before tearing down the
+    /// sender/freeing the buffers so neither happens while the SDK might still be reading one.</summary>
+    [DllImport(LibraryName, CallingConvention = CallingConvention.Cdecl, EntryPoint = "NDIlib_send_send_video_async_v2")]
+    public static extern void NDIlib_send_send_video_async_v2_Flush(IntPtr instance, IntPtr nullVideoData);
 }
