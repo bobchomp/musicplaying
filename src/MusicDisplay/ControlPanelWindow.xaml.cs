@@ -67,8 +67,7 @@ public partial class ControlPanelWindow : Window
 
         if (startMinimized)
         {
-            WindowState = WindowState.Minimized;
-            ShowInTaskbar = false;
+            HideToTray();
         }
     }
 
@@ -257,13 +256,14 @@ public partial class ControlPanelWindow : Window
         Activate();
     }
 
-    private void Window_StateChanged(object? sender, EventArgs e)
+    /// <summary>Hides the window down to just the tray icon — no taskbar entry, no visible
+    /// window at all. Only called from the deliberate "minimize to tray" paths below, not from
+    /// the window's own minimize button: that one should just do a normal Windows minimize
+    /// (staying in the taskbar, restorable from there), not this.</summary>
+    private void HideToTray()
     {
-        if (WindowState == WindowState.Minimized)
-        {
-            ShowInTaskbar = false;
-            Hide();
-        }
+        ShowInTaskbar = false;
+        Hide();
     }
 
     private void Window_Closing(object? sender, System.ComponentModel.CancelEventArgs e)
@@ -290,7 +290,7 @@ public partial class ControlPanelWindow : Window
         switch (dialog.Choice)
         {
             case CloseChoice.MinimizeToTray:
-                WindowState = WindowState.Minimized;
+                HideToTray();
                 break;
             case CloseChoice.ExitProgram:
                 ExitApplication();
