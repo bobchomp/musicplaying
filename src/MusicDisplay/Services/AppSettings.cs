@@ -15,6 +15,7 @@ public sealed class AppSettings
     public bool ShowLyrics { get; set; }
     public bool NetworkFeedEnabled { get; set; }
     public string NetworkFeedName { get; set; } = "Music Display";
+    public string YouTubeApiKey { get; set; } = string.Empty;
 }
 
 public static class SettingsService

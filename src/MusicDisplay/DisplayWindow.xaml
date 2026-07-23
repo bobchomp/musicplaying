@@ -10,5 +10,8 @@
         WindowStartupLocation="Manual"
         Background="Black">
 
-    <local:NowPlayingView x:Name="View" />
+    <Grid>
+        <local:NowPlayingView x:Name="View" />
+        <local:MusicVideoPlayerView x:Name="MusicVideo" Visibility="Collapsed" />
+    </Grid>
 </Window>
