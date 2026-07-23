@@ -151,7 +151,7 @@
                                     <Viewbox Stretch="Uniform" StretchDirection="DownOnly">
                                         <TextBlock x:Name="EdgeLyricSlot0"
                                                    FontFamily="pack://application:,,,/Resources/Fonts/#Poppins"
-                                                   FontSize="26"
+                                                   FontSize="32"
                                                    Foreground="#80FFFFFF"
                                                    TextAlignment="Center"
                                                    TextWrapping="NoWrap" />
@@ -161,7 +161,7 @@
                                     <Viewbox Stretch="Uniform" StretchDirection="DownOnly">
                                         <TextBlock x:Name="EdgeLyricSlot1"
                                                    FontFamily="pack://application:,,,/Resources/Fonts/#Poppins"
-                                                   FontSize="26"
+                                                   FontSize="32"
                                                    Foreground="#80FFFFFF"
                                                    TextAlignment="Center"
                                                    TextWrapping="NoWrap" />
@@ -171,7 +171,7 @@
                                     <Viewbox Stretch="Uniform" StretchDirection="DownOnly">
                                         <TextBlock x:Name="EdgeLyricSlot2"
                                                    FontFamily="pack://application:,,,/Resources/Fonts/#Poppins SemiBold"
-                                                   FontSize="38"
+                                                   FontSize="46"
                                                    Foreground="White"
                                                    TextAlignment="Center"
                                                    TextWrapping="NoWrap" />
@@ -181,7 +181,7 @@
                                     <Viewbox Stretch="Uniform" StretchDirection="DownOnly">
                                         <TextBlock x:Name="EdgeLyricSlot3"
                                                    FontFamily="pack://application:,,,/Resources/Fonts/#Poppins"
-                                                   FontSize="26"
+                                                   FontSize="32"
                                                    Foreground="#80FFFFFF"
                                                    TextAlignment="Center"
                                                    TextWrapping="NoWrap" />
@@ -191,7 +191,7 @@
                                     <Viewbox Stretch="Uniform" StretchDirection="DownOnly">
                                         <TextBlock x:Name="EdgeLyricSlot4"
                                                    FontFamily="pack://application:,,,/Resources/Fonts/#Poppins"
-                                                   FontSize="26"
+                                                   FontSize="32"
                                                    Foreground="#80FFFFFF"
                                                    TextAlignment="Center"
                                                    TextWrapping="NoWrap" />
