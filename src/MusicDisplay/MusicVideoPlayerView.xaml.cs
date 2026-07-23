@@ -20,6 +20,11 @@ public partial class MusicVideoPlayerView : UserControl
 
     private CoreWebView2Environment? _environment;
 
+    // DisplayWindow and ControlPanelWindow's embedded preview each own a separate instance of
+    // this control, both logging to the same music-video-debug.log — without this, it's
+    // impossible to tell from the log alone which of the two a given line belongs to.
+    private readonly string _instanceId = Guid.NewGuid().ToString("N")[..6];
+
     public MusicVideoPlayerView()
     {
         InitializeComponent();
@@ -31,8 +36,10 @@ public partial class MusicVideoPlayerView : UserControl
     /// video just silently not appearing.</summary>
     public async Task<bool> PlayAsync(string videoId)
     {
+        Log($"PlayAsync({videoId}) start");
         if (!await EnsureInitializedAsync())
         {
+            Log("PlayAsync: EnsureInitializedAsync failed, not navigating");
             return false;
         }
 
@@ -41,12 +48,15 @@ public partial class MusicVideoPlayerView : UserControl
         // which EnsureInitializedAsync below works around via a browser-launch argument, since a
         // programmatic Navigate() here doesn't itself count as the "user gesture" Chromium's
         // heuristic looks for.
-        Browser.CoreWebView2!.Navigate($"https://www.youtube.com/embed/{videoId}?autoplay=1&playsinline=1");
+        var url = $"https://www.youtube.com/embed/{videoId}?autoplay=1&playsinline=1";
+        Log($"navigating to {url}");
+        Browser.CoreWebView2!.Navigate(url);
         return true;
     }
 
     public async Task StopAsync()
     {
+        Log("StopAsync");
         if (!await EnsureInitializedAsync())
         {
             return;
@@ -59,6 +69,7 @@ public partial class MusicVideoPlayerView : UserControl
     {
         if (Browser.CoreWebView2 != null)
         {
+            Log("EnsureInitializedAsync: already initialized");
             return true;
         }
 
@@ -67,22 +78,29 @@ public partial class MusicVideoPlayerView : UserControl
             // Without this, YouTube's embedded player loads but Chromium blocks it from playing
             // with sound until something inside the page itself receives a real user click/tap —
             // there's no such interaction here, so autoplay would otherwise silently do nothing.
-            _environment ??= await CoreWebView2Environment.CreateAsync(
-                null,
-                null,
-                new CoreWebView2EnvironmentOptions("--autoplay-policy=no-user-gesture-required"));
+            if (_environment == null)
+            {
+                Log("creating CoreWebView2Environment...");
+                _environment = await CoreWebView2Environment.CreateAsync(
+                    null,
+                    null,
+                    new CoreWebView2EnvironmentOptions("--autoplay-policy=no-user-gesture-required"));
+                Log("CoreWebView2Environment created");
+            }
 
+            Log("EnsureCoreWebView2Async starting...");
             await Browser.EnsureCoreWebView2Async(_environment);
+            Log("EnsureCoreWebView2Async completed");
             return true;
         }
         catch (Exception ex)
         {
-            Log($"WebView2 initialization failed: {ex.Message}");
+            Log($"WebView2 initialization failed: {ex}");
             return false;
         }
     }
 
-    private static void Log(string message)
+    private void Log(string message)
     {
         try
         {
@@ -92,7 +110,7 @@ public partial class MusicVideoPlayerView : UserControl
                 Directory.CreateDirectory(dir);
             }
 
-            File.AppendAllText(DebugLogPath, $"{DateTime.Now:HH:mm:ss.fff} {message}{Environment.NewLine}");
+            File.AppendAllText(DebugLogPath, $"{DateTime.Now:HH:mm:ss.fff} [{_instanceId}] {message}{Environment.NewLine}");
         }
         catch (Exception)
         {
