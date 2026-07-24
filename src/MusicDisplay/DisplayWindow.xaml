@@ -10,17 +10,20 @@
         WindowStartupLocation="Manual"
         Background="Black">
 
+    <!-- MusicVideo's own Visibility/Opacity is never touched, and stays Visible always — none of
+         WPF's usual hiding mechanisms (Collapsed, Hidden, Opacity=0) reliably work on it, since
+         it's a separately-composited native window (not a normal WPF visual) and WebView2 needs
+         it to be a genuine, actively-rendered part of the tree to ever finish initializing;
+         anything short of that just hangs EnsureCoreWebView2Async forever. Instead, whichever of
+         View/MusicVideo should be hidden gets covered by the other via Panel.ZIndex — an ordinary
+         opaque WPF element on top of airspace content occludes it completely, which is a normal,
+         reliable compositing operation; it's only making the airspace content itself transparent
+         that doesn't work. Both are already full-screen and opaque (View always paints a solid
+         background; MusicVideo is filled edge-to-edge), so whichever is on top fully hides the
+         other with no extra covering element needed. View starts on top (Z-index 1) since no
+         video is showing at launch. -->
     <Grid>
-        <local:NowPlayingView x:Name="View" />
-        <!-- Hidden, not Collapsed: it needs to stay part of layout at all times (Collapsed
-             elements never get a real, laid-out window for WebView2 to attach to) so it's already
-             fully initialized well before Show Music Video is ever clicked, rather than racing a
-             layout pass that hasn't happened yet. Also deliberately not Opacity — WebView2 is a
-             separately-composited native window (not a normal WPF visual), and controls like that
-             are well known to ignore WPF's Opacity entirely, which just left it fully visible
-             showing a plain white about:blank page after Stop. Hidden reserves the same layout
-             space as Visible (unlike Collapsed) while actually hiding native window content
-             (unlike Opacity). -->
-        <local:MusicVideoPlayerView x:Name="MusicVideo" Visibility="Hidden" />
+        <local:NowPlayingView x:Name="View" Panel.ZIndex="1" />
+        <local:MusicVideoPlayerView x:Name="MusicVideo" Panel.ZIndex="0" />
     </Grid>
 </Window>

@@ -1,5 +1,6 @@
 using System.Runtime.InteropServices;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Interop;
 using MusicDisplay.Services;
@@ -89,8 +90,8 @@ public partial class DisplayWindow : Window
     {
         if (await MusicVideo.PlayAsync(videoId))
         {
-            View.Visibility = Visibility.Collapsed;
-            MusicVideo.Visibility = Visibility.Visible;
+            Panel.SetZIndex(MusicVideo, 1);
+            Panel.SetZIndex(View, 0);
             return true;
         }
 
@@ -99,8 +100,8 @@ public partial class DisplayWindow : Window
 
     public async Task HideMusicVideoAsync()
     {
-        MusicVideo.Visibility = Visibility.Hidden;
-        View.Visibility = Visibility.Visible;
+        Panel.SetZIndex(View, 1);
+        Panel.SetZIndex(MusicVideo, 0);
         await MusicVideo.StopAsync();
     }
 
