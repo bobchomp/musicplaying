@@ -1,6 +1,5 @@
 using System.IO;
 using System.Windows;
-using System.Windows.Controls;
 using System.Windows.Threading;
 using MusicDisplay.Services;
 using WinForms = System.Windows.Forms;
@@ -305,8 +304,11 @@ public partial class ControlPanelWindow : Window
         LogMusicVideoDebug($"preview playback started={previewStarted}");
         if (previewStarted)
         {
-            Panel.SetZIndex(PreviewMusicVideo, 1);
-            Panel.SetZIndex(PreviewView, 0);
+            // Fully qualified: System.Windows.Forms.Panel also exists in this WPF+WinForms
+            // project, so a plain "Panel" is ambiguous (CS0104) even with only
+            // System.Windows.Controls imported.
+            System.Windows.Controls.Panel.SetZIndex(PreviewMusicVideo, 1);
+            System.Windows.Controls.Panel.SetZIndex(PreviewView, 0);
         }
 
         if (!displayStarted && !previewStarted)
@@ -348,8 +350,8 @@ public partial class ControlPanelWindow : Window
 
         await _displayWindow.HideMusicVideoAsync();
 
-        Panel.SetZIndex(PreviewView, 1);
-        Panel.SetZIndex(PreviewMusicVideo, 0);
+        System.Windows.Controls.Panel.SetZIndex(PreviewView, 1);
+        System.Windows.Controls.Panel.SetZIndex(PreviewMusicVideo, 0);
         await PreviewMusicVideo.StopAsync();
 
         if (_pausedByMusicVideo)
