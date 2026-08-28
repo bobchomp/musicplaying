@@ -28,6 +28,12 @@ ArchitecturesAllowed=x64
 ArchitecturesInstallIn64BitMode=x64
 WizardStyle=modern
 PrivilegesRequired=lowest
+; Same GUID-style name as App.xaml.cs's SingleInstanceMutexName. Safety net for the in-app
+; updater (which downloads this installer, launches it, and then closes the app itself before
+; Setup gets to its file-copy step): if that self-close is ever slow, still running, or the
+; installer is instead run by hand while the app happens to be open, Setup detects the held
+; mutex and prompts to close it, rather than failing to overwrite the locked running exe.
+AppMutex=MusicDisplay-SingleInstance-3F2A9E9E-9F5B-4E2A-8E3C-5B2E7C1A2B44
 
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl"
@@ -44,7 +50,12 @@ Name: "{group}\Uninstall {#MyAppName}"; Filename: "{uninstallexe}"
 Name: "{autodesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Tasks: desktopicon
 
 [Run]
-Filename: "{app}\{#MyAppExeName}"; Description: "Launch {#MyAppName}"; Flags: nowait postinstall skipifsilent
+; No skipifsilent here (unlike the NDI entries below): the in-app auto-updater runs this
+; installer with /VERYSILENT specifically so it can relaunch the app itself when Setup finishes,
+; with nothing for the user to click — skipifsilent would suppress exactly the relaunch a silent
+; update needs. Harmless for a normal, non-silent run too: it just keeps showing as the usual
+; checked-by-default "Launch Music Display" box on the finish page.
+Filename: "{app}\{#MyAppExeName}"; Description: "Launch {#MyAppName}"; Flags: nowait postinstall
 ; The Network Feed (NDI) option needs the free NDI Runtime, a separate product from NDI/Vizrt
 ; (https://ndi.video) under its own license — we don't bundle it, but we do offer to fetch and run
 ; NDI's own official redistributable installer for the user (see CurStepChanged below), rather

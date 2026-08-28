@@ -1,5 +1,7 @@
 using System.IO;
 using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Threading;
 using MusicDisplay.Services;
 using WinForms = System.Windows.Forms;
 using Drawing = System.Drawing;
@@ -18,8 +20,11 @@ public partial class ControlPanelWindow : Window
     private readonly NdiOutputService _ndiOutputService = new();
     private readonly LyricsService _lyricsService = new();
     private readonly YouTubeService _youTubeService = new();
+    private readonly UpdateService _updateService = new();
+    private readonly DispatcherTimer _updateCheckTimer = new() { Interval = TimeSpan.FromHours(24) };
 
     private WinForms.NotifyIcon? _trayIcon;
+    private UpdateAvailableWindow? _updateWindow;
     private WinForms.ToolStripMenuItem? _trayToggleMenuItem;
 
     private bool _isDisplayVisible;
@@ -67,9 +72,17 @@ public partial class ControlPanelWindow : Window
         SetupTrayIcon();
 
         _displayWindow.DismissedByUser += OnDisplayDismissedByUser;
+        _displayWindow.MusicVideoEnded += () => _ = StopMusicVideoAsync();
         _nowPlayingService.NowPlayingChanged += OnNowPlayingChanged;
 
         Loaded += async (_, _) => await _nowPlayingService.StartAsync();
+
+        // A few seconds after launch (not blocking startup) and then once a day for as long as
+        // the app keeps running in the tray — most users never restart it often enough for a
+        // startup-only check to ever catch a new release.
+        _updateCheckTimer.Tick += (_, _) => _ = CheckForUpdatesAsync(showUpToDateMessage: false);
+        _updateCheckTimer.Start();
+        _ = DelayedStartupUpdateCheckAsync();
 
         if (_settings.DisplayVisible)
         {
@@ -292,9 +305,8 @@ public partial class ControlPanelWindow : Window
         LogMusicVideoDebug($"preview playback started={previewStarted}");
         if (previewStarted)
         {
-            PreviewView.Visibility = Visibility.Collapsed;
-            PreviewMusicVideo.Opacity = 1;
-            PreviewMusicVideo.IsHitTestVisible = true;
+            Panel.SetZIndex(PreviewMusicVideo, 1);
+            Panel.SetZIndex(PreviewView, 0);
         }
 
         if (!displayStarted && !previewStarted)
@@ -320,6 +332,14 @@ public partial class ControlPanelWindow : Window
 
     private async Task StopMusicVideoAsync()
     {
+        // Guards against double-handling: this runs both when the user clicks Stop and when
+        // MusicVideoEnded fires on its own, and there's nothing stopping both from happening
+        // close together (e.g. the video finishes right as someone clicks Stop).
+        if (!_isShowingMusicVideo)
+        {
+            return;
+        }
+
         LogMusicVideoDebug("StopMusicVideoAsync");
         _isShowingMusicVideo = false;
         SetPlaybackButtonsEnabled(true);
@@ -328,9 +348,8 @@ public partial class ControlPanelWindow : Window
 
         await _displayWindow.HideMusicVideoAsync();
 
-        PreviewMusicVideo.Opacity = 0;
-        PreviewMusicVideo.IsHitTestVisible = false;
-        PreviewView.Visibility = Visibility.Visible;
+        Panel.SetZIndex(PreviewView, 1);
+        Panel.SetZIndex(PreviewMusicVideo, 0);
         await PreviewMusicVideo.StopAsync();
 
         if (_pausedByMusicVideo)
@@ -650,6 +669,46 @@ public partial class ControlPanelWindow : Window
 
     private void AboutMenuItem_Click(object sender, RoutedEventArgs e) => new AboutWindow { Owner = this }.ShowDialog();
 
+    private void CheckForUpdatesMenuItem_Click(object sender, RoutedEventArgs e) =>
+        _ = CheckForUpdatesAsync(showUpToDateMessage: true);
+
+    private async Task DelayedStartupUpdateCheckAsync()
+    {
+        await Task.Delay(TimeSpan.FromSeconds(5));
+        await CheckForUpdatesAsync(showUpToDateMessage: false);
+    }
+
+    private async Task CheckForUpdatesAsync(bool showUpToDateMessage)
+    {
+        // Never stack a second nag on top of one the user hasn't dismissed yet — this runs both
+        // from the daily timer and from the user manually clicking "Check for Updates".
+        if (_updateWindow != null)
+        {
+            return;
+        }
+
+        var update = await _updateService.CheckForUpdateAsync();
+        if (update == null)
+        {
+            if (showUpToDateMessage)
+            {
+                System.Windows.MessageBox.Show(
+                    this,
+                    "You're running the latest version of Music Display.",
+                    "Music Display",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Information);
+            }
+
+            return;
+        }
+
+        _updateWindow = new UpdateAvailableWindow(_updateService, update);
+        _updateWindow.InstallStarted += ExitApplication;
+        _updateWindow.Closed += (_, _) => _updateWindow = null;
+        _updateWindow.Show();
+    }
+
     private void OnNowPlayingChanged(NowPlayingInfo? info)
     {
         Dispatcher.Invoke(() =>
@@ -752,6 +811,7 @@ public partial class ControlPanelWindow : Window
     {
         _isExiting = true;
 
+        _updateCheckTimer.Stop();
         _nowPlayingService.NowPlayingChanged -= OnNowPlayingChanged;
         _nowPlayingService.Dispose();
 

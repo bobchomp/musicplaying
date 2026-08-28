@@ -26,6 +26,7 @@
                 <MenuItem Header="Open Settings Folder" Click="OpenSettingsFolderMenuItem_Click" />
             </MenuItem>
             <MenuItem Header="_Help">
+                <MenuItem Header="Check for _Updates" Click="CheckForUpdatesMenuItem_Click" />
                 <MenuItem Header="_About Music Display" Click="AboutMenuItem_Click" />
             </MenuItem>
         </Menu>
@@ -227,10 +228,11 @@
             </ScrollViewer>
 
             <Border Grid.Column="1" Background="Black" BorderThickness="1,0,0,0" BorderBrush="#22808080">
+                <!-- Panel.ZIndex, not Visibility/Opacity on PreviewMusicVideo — see the matching
+                     comment in DisplayWindow.xaml. -->
                 <Grid>
-                    <local:NowPlayingView x:Name="PreviewView" />
-                    <!-- Opacity, not Visibility — see the matching comment in DisplayWindow.xaml. -->
-                    <local:MusicVideoPlayerView x:Name="PreviewMusicVideo" Opacity="0" IsHitTestVisible="False" />
+                    <local:NowPlayingView x:Name="PreviewView" Panel.ZIndex="1" />
+                    <local:MusicVideoPlayerView x:Name="PreviewMusicVideo" Panel.ZIndex="0" />
                 </Grid>
             </Border>
         </Grid>

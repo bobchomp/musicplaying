@@ -74,8 +74,19 @@ No admin rights needed.
 
 The menu bar also has **View** (Show/Hide Display, Blank Screen — the same actions as the buttons
 below), **Settings > Open Settings Folder** (jumps straight to where `settings.json` lives), and
-**Help > About Music Display** (version number, a GitHub link, and the third-party license
-disclosures also listed below).
+**Help** (**Check for Updates** — see below — and **About Music Display**: version number, a
+GitHub link, and the third-party license disclosures also listed below).
+
+### Updates
+
+Music Display checks [GitHub Releases](https://github.com/bobchomp/musicplaying/releases) for a
+newer version a few seconds after launch, and once a day after that for as long as it keeps
+running. If one's out, a small window pops up with an **Update** button — clicking it downloads
+that release's installer, runs it silently (no wizard, nothing to click through), and closes
+Music Display so Setup can replace it; the installer then reopens the app itself once it's done.
+**Help > Check for Updates** runs the same check on demand, and says so if you're already up to
+date. This needs no configuration and works the same for everyone — unlike Show Music Video, it
+isn't gated behind an API key.
 
 ### Sending the feed to EasyWorship (or other NDI-aware software)
 
@@ -191,6 +202,7 @@ src/MusicDisplay/
                                toggled on top of it, a MusicVideoPlayerView)
   NowPlayingView.xaml(.cs)     shared album art / title / artist visual, equalizer bars, clock
   MusicVideoPlayerView.xaml(.cs) WebView2-hosted YouTube player for Show Music Video
+  UpdateAvailableWindow.xaml(.cs) "a newer version is available" popup, downloads + launches Setup
   Services/
     NowPlayingService.cs      reads title/artist/artwork via Windows SMTC
     ColorExtractor.cs         picks a background accent color from the album art
@@ -204,6 +216,8 @@ src/MusicDisplay/
     LyricsLine.cs             one timestamped line of synced lyrics
     PlaybackPosition.cs       playback-position snapshot used to sync lyrics to position
     YouTubeService.cs         searches the YouTube Data API for a track's music video
+    UpdateService.cs          checks GitHub Releases for a newer version, downloads its installer
+    UpdateInfo.cs             a newer release's version + installer download URL
   Resources/Fonts/            embedded Poppins font files (OFL licensed, see OFL.txt)
 installer/installer.iss       Inno Setup installer script
 ```

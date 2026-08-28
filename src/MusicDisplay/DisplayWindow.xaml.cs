@@ -1,5 +1,6 @@
 using System.Runtime.InteropServices;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Interop;
 using MusicDisplay.Services;
@@ -28,10 +29,14 @@ public partial class DisplayWindow : Window
     /// <summary>Raised when the user dismisses the display themselves (Ctrl+Q).</summary>
     public event Action? DismissedByUser;
 
+    /// <summary>Raised when a music video finishes playing on its own, not when Stop is clicked.</summary>
+    public event Action? MusicVideoEnded;
+
     public DisplayWindow()
     {
         InitializeComponent();
         PreviewKeyDown += OnPreviewKeyDown;
+        MusicVideo.VideoEnded += () => MusicVideoEnded?.Invoke();
     }
 
     private void OnPreviewKeyDown(object sender, KeyEventArgs e)
@@ -85,9 +90,8 @@ public partial class DisplayWindow : Window
     {
         if (await MusicVideo.PlayAsync(videoId))
         {
-            View.Visibility = Visibility.Collapsed;
-            MusicVideo.Opacity = 1;
-            MusicVideo.IsHitTestVisible = true;
+            Panel.SetZIndex(MusicVideo, 1);
+            Panel.SetZIndex(View, 0);
             return true;
         }
 
@@ -96,9 +100,8 @@ public partial class DisplayWindow : Window
 
     public async Task HideMusicVideoAsync()
     {
-        MusicVideo.Opacity = 0;
-        MusicVideo.IsHitTestVisible = false;
-        View.Visibility = Visibility.Visible;
+        Panel.SetZIndex(View, 1);
+        Panel.SetZIndex(MusicVideo, 0);
         await MusicVideo.StopAsync();
     }
 
