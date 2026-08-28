@@ -82,10 +82,11 @@ GitHub link, and the third-party license disclosures also listed below).
 Music Display checks [GitHub Releases](https://github.com/bobchomp/musicplaying/releases) for a
 newer version a few seconds after launch, and once a day after that for as long as it keeps
 running. If one's out, a small window pops up with an **Update** button — clicking it downloads
-that release's installer, launches it, and closes Music Display so Setup can replace it; the
-installer then reopens the app itself as usual once it finishes. **Help > Check for Updates** runs
-the same check on demand, and says so if you're already up to date. This needs no configuration
-and works the same for everyone — unlike Show Music Video, it isn't gated behind an API key.
+that release's installer, runs it silently (no wizard, nothing to click through), and closes
+Music Display so Setup can replace it; the installer then reopens the app itself once it's done.
+**Help > Check for Updates** runs the same check on demand, and says so if you're already up to
+date. This needs no configuration and works the same for everyone — unlike Show Music Video, it
+isn't gated behind an API key.
 
 ### Sending the feed to EasyWorship (or other NDI-aware software)
 

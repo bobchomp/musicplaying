@@ -50,7 +50,12 @@ Name: "{group}\Uninstall {#MyAppName}"; Filename: "{uninstallexe}"
 Name: "{autodesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Tasks: desktopicon
 
 [Run]
-Filename: "{app}\{#MyAppExeName}"; Description: "Launch {#MyAppName}"; Flags: nowait postinstall skipifsilent
+; No skipifsilent here (unlike the NDI entries below): the in-app auto-updater runs this
+; installer with /VERYSILENT specifically so it can relaunch the app itself when Setup finishes,
+; with nothing for the user to click — skipifsilent would suppress exactly the relaunch a silent
+; update needs. Harmless for a normal, non-silent run too: it just keeps showing as the usual
+; checked-by-default "Launch Music Display" box on the finish page.
+Filename: "{app}\{#MyAppExeName}"; Description: "Launch {#MyAppName}"; Flags: nowait postinstall
 ; The Network Feed (NDI) option needs the free NDI Runtime, a separate product from NDI/Vizrt
 ; (https://ndi.video) under its own license — we don't bundle it, but we do offer to fetch and run
 ; NDI's own official redistributable installer for the user (see CurStepChanged below), rather

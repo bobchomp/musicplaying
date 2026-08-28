@@ -53,11 +53,20 @@ public partial class UpdateAvailableWindow : Window
 
         try
         {
-            // Not silent: this opens the normal Setup wizard, same as if the user had downloaded
-            // and double-clicked the installer themselves — InstallStarted below closes this app
-            // well before Setup gets past its first couple of wizard pages and actually tries to
-            // replace the running exe.
-            Process.Start(new ProcessStartInfo { FileName = installerPath, UseShellExecute = true });
+            // /VERYSILENT: no wizard pages, no progress window — Setup just replaces the files
+            // and exits. /SUPPRESSMSGBOXES answers any prompt it would otherwise show (e.g. "quit
+            // and continue?") with its default/safest answer instead of blocking with a dialog
+            // nobody's there to click; /NORESTART skips a reboot prompt (this app never needs
+            // one). installer.iss's own app-relaunch [Run] entry still fires afterward (it isn't
+            // skipifsilent), so the app comes back up on its own once Setup finishes — the user
+            // sees this window close and, a few seconds later, the app reappear, with nothing
+            // in between.
+            Process.Start(new ProcessStartInfo
+            {
+                FileName = installerPath,
+                Arguments = "/VERYSILENT /SUPPRESSMSGBOXES /NORESTART",
+                UseShellExecute = true,
+            });
         }
         catch (Exception)
         {
