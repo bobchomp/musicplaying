@@ -1,6 +1,5 @@
 using System.Runtime.InteropServices;
 using System.Windows;
-using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Interop;
 using MusicDisplay.Services;
@@ -90,8 +89,11 @@ public partial class DisplayWindow : Window
     {
         if (await MusicVideo.PlayAsync(videoId))
         {
-            Panel.SetZIndex(MusicVideo, 1);
-            Panel.SetZIndex(View, 0);
+            // Fully qualified: System.Windows.Forms.Panel also exists in this WPF+WinForms
+            // project, so a plain "Panel" (even with only System.Windows.Controls imported) is
+            // ambiguous — CS0104.
+            System.Windows.Controls.Panel.SetZIndex(MusicVideo, 1);
+            System.Windows.Controls.Panel.SetZIndex(View, 0);
             return true;
         }
 
@@ -100,8 +102,8 @@ public partial class DisplayWindow : Window
 
     public async Task HideMusicVideoAsync()
     {
-        Panel.SetZIndex(View, 1);
-        Panel.SetZIndex(MusicVideo, 0);
+        System.Windows.Controls.Panel.SetZIndex(View, 1);
+        System.Windows.Controls.Panel.SetZIndex(MusicVideo, 0);
         await MusicVideo.StopAsync();
     }
 
