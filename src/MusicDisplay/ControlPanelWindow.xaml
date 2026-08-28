@@ -26,6 +26,7 @@
                 <MenuItem Header="Open Settings Folder" Click="OpenSettingsFolderMenuItem_Click" />
             </MenuItem>
             <MenuItem Header="_Help">
+                <MenuItem Header="Check for _Updates" Click="CheckForUpdatesMenuItem_Click" />
                 <MenuItem Header="_About Music Display" Click="AboutMenuItem_Click" />
             </MenuItem>
         </Menu>
